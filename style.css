@@ -1,0 +1,177 @@
+/* Basic styles for the Amazon Ads Dashboard */
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+header {
+  background-color: #0f62fe;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+.auth-container {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container label {
+  display: block;
+  margin-top: 1rem;
+}
+
+.auth-container input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.auth-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.auth-buttons button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #0f62fe;
+  color: white;
+}
+
+.auth-buttons button:hover {
+  background-color: #0043ce;
+}
+
+.message {
+  color: red;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.logout {
+  float: right;
+  margin: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.logout:hover {
+  background-color: #c0392b;
+}
+
+/* Filter panel styles */
+.filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 2rem;
+  align-items: center;
+}
+
+.filter-group label {
+  margin-right: 0.5rem;
+  font-weight: bold;
+}
+
+.filter-group select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin: 2rem;
+}
+
+.kpi-card {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.kpi-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: #555;
+}
+
+.kpi-card p {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #0f62fe;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 2rem;
+}
+
+.chart-container {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Aggregated table styles */
+.table-container {
+  margin: 2rem;
+  overflow-x: auto;
+}
+
+.agg-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.agg-table th,
+.agg-table td {
+  border: 1px solid #ddd;
+  padding: 0.5rem 0.75rem;
+  text-align: right;
+}
+
+.agg-table th:first-child,
+.agg-table td:first-child {
+  text-align: left;
+}
+
+.agg-table thead th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+  color: #333;
+}
+
+.agg-table tfoot td {
+  font-weight: bold;
+  background-color: #fafafa;
+}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon Ads Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Chart.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Papa Parse for CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
+  <!-- Firebase SDK (compat versions for easier integration) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Amazon Ads Dashboard</h1>
+  </header>
+  <!-- Login/Signup Container -->
+  <div id="loginContainer" class="auth-container">
+    <h2>Login or Sign up</h2>
+    <form id="authForm" onsubmit="return false;">
+      <label for="email">Email</label>
+      <input type="email" id="email" required />
+      <label for="password">Password</label>
+      <input type="password" id="password" required />
+      <div class="auth-buttons">
+        <button id="signupButton">Sign Up</button>
+        <button id="loginButton">Login</button>
+      </div>
+    </form>
+    <p id="authMessage" class="message"></p>
+  </div>
+  <!-- Dashboard Container -->
+  <div id="dashboardContainer" class="hidden">
+    <!-- Filter panel -->
+    <div class="filter-panel">
+      <div class="filter-group">
+        <label for="monthFilter">Month:</label>
+        <select id="monthFilter">
+          <option value="All">All</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="storeFilter">Store:</label>
+        <select id="storeFilter">
+          <option value="All">All</option>
+        </select>
+      </div>
+    </div>
+    <button id="logoutButton" class="logout">Log out</button>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <h3>Total Spend</h3>
+        <p id="kpiSpend">0</p>
+      </div>
+      <div class="kpi-card">
+        <h3>Total Sales</h3>
+        <p id="kpiSales">0</p>
+      </div>
+      <div class="kpi-card">
+        <h3>Total Orders</h3>
+        <p id="kpiOrders">0</p>
+      </div>
+      <div class="kpi-card">
+        <h3>Average ACOS</h3>
+        <p id="kpiACOS">0</p>
+      </div>
+      <div class="kpi-card">
+        <h3>Average CTR</h3>
+        <p id="kpiCTR">0</p>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-container">
+        <canvas id="barChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="lineChart1"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="lineChart2"></canvas>
+      </div>
+    </div>
+    <!-- Aggregated performance table -->
+    <div class="table-container">
+      <table id="aggTable" class="agg-table">
+        <thead>
+          <tr>
+            <th>Store</th>
+            <th>Sum of Spend</th>
+            <th>Sum of Sales</th>
+            <th>ACOS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data rows will be populated by script.js -->
+        </tbody>
+        <tfoot>
+          <!-- Grand total row will be appended here -->
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  <!-- Data will be loaded via Papa Parse from the CSV file -->
+  <script src="script.js"></script>
+</body>
+</html>
