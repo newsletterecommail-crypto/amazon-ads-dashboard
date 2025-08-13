@@ -20,11 +20,11 @@
   <!-- Papa Parse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
 
-  <!-- Chart.js -->
+  <!-- Chart.js core -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <!-- Chart.js Zoom Plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.js"></script>
 </head>
 
 <body>
@@ -77,32 +77,4 @@
     <!-- Charts -->
     <div class="chart-grid">
       <div class="chart-container"><canvas id="barChart"></canvas></div>
-      <div class="chart-container"><canvas id="lineChart1"></canvas></div>
-      <div class="chart-container"><canvas id="lineChart2"></canvas></div>
-    </div>
-
-    <!-- Table -->
-    <div class="table-container">
-      <table id="aggTable" class="agg-table">
-        <thead>
-          <tr><th>Store</th><th>Sum of Spend</th><th>Sum of Sales</th><th>ACOS</th></tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot></tfoot>
-      </table>
-    </div>
-  </div>
-
-  <!-- ✅ Register Chart Zoom Plugin here -->
-  <script>
-    if (window['chartjs-plugin-zoom']) {
-      Chart.register(window['chartjs-plugin-zoom']);
-    } else {
-      console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
-    }
-  </script>
-
-  <!-- Load main dashboard logic -->
-  <script src="script.js"></script>
-</body>
-</html>
+      <div class="chart-container"><canvas id="lineChart1"></ca
