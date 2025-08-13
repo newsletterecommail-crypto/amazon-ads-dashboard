@@ -5,26 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Amazon Ads Dashboard</title>
 
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Amazon Ads Dashboard to visualize ad performance KPIs including Spend, Sales, ACOS, and CTR.">
+  <meta name="author" content="Your Name or Company">
+
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 
   <!-- DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js" defer></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js" defer></script>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" defer></script>
 
   <!-- Papa Parse -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js" defer></script>
 
   <!-- Chart.js core -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 
   <!-- Chart.js Zoom Plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.js" defer></script>
 </head>
 
 <body>
@@ -41,8 +45,8 @@
       <label for="password">Password</label>
       <input type="password" id="password" required />
       <div class="auth-buttons">
-        <button id="signupButton">Sign Up</button>
-        <button id="loginButton">Login</button>
+        <button type="button" id="signupButton">Sign Up</button>
+        <button type="button" id="loginButton">Login</button>
       </div>
     </form>
     <p id="authMessage" class="message"></p>
@@ -77,4 +81,13 @@
     <!-- Charts -->
     <div class="chart-grid">
       <div class="chart-container"><canvas id="barChart"></canvas></div>
-      <div class="chart-container"><canvas id="lineChart1"></ca
+      <div class="chart-container"><canvas id="lineChart1"></canvas></div>
+      <div class="chart-container"><canvas id="lineChart2"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Main App Script -->
+  <script src="script.js" defer></script>
+</body>
+</html>
+
