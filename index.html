@@ -8,34 +8,31 @@
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- jQuery & DataTables -->
+  <!-- DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
 
-  <!-- Firebase (compat versions for easier integration) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-  <!-- Papa Parse for CSV parsing -->
+  <!-- Papa Parse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
 
-  <!-- Chart.js (must load BEFORE plugin) -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-  <!-- Chart.js Zoom Plugin (MUST come after chart.js) -->
+  <!-- Chart.js Zoom Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.min.js"></script>
-
-  <!-- Register Chart Zoom Plugin before your script -->
 </head>
-
 
 <body>
   <header>
     <h1>Amazon Ads Dashboard</h1>
   </header>
 
-  <!-- Login/Signup Container -->
+  <!-- Login Container -->
   <div id="loginContainer" class="auth-container">
     <h2>Login or Sign up</h2>
     <form id="authForm" onsubmit="return false;">
@@ -53,19 +50,15 @@
 
   <!-- Dashboard Container -->
   <div id="dashboardContainer" class="hidden">
-    <!-- Filter panel -->
+    <!-- Filters -->
     <div class="filter-panel">
       <div class="filter-group">
         <label for="monthFilter">Month:</label>
-        <select id="monthFilter">
-          <option value="All">All</option>
-        </select>
+        <select id="monthFilter"><option value="All">All</option></select>
       </div>
       <div class="filter-group">
         <label for="storeFilter">Store:</label>
-        <select id="storeFilter">
-          <option value="All">All</option>
-        </select>
+        <select id="storeFilter"><option value="All">All</option></select>
       </div>
     </div>
 
@@ -74,84 +67,42 @@
 
     <!-- KPI Cards -->
     <div class="kpi-grid">
-      <div class="kpi-card">
-        <h3>Total Spend</h3>
-        <p id="kpiSpend">0</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Total Sales</h3>
-        <p id="kpiSales">0</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Total Orders</h3>
-        <p id="kpiOrders">0</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Average ACOS</h3>
-        <p id="kpiACOS">0</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Average CTR</h3>
-        <p id="kpiCTR">0</p>
-      </div>
+      <div class="kpi-card"><h3>Total Spend</h3><p id="kpiSpend">0</p></div>
+      <div class="kpi-card"><h3>Total Sales</h3><p id="kpiSales">0</p></div>
+      <div class="kpi-card"><h3>Total Orders</h3><p id="kpiOrders">0</p></div>
+      <div class="kpi-card"><h3>Average ACOS</h3><p id="kpiACOS">0</p></div>
+      <div class="kpi-card"><h3>Average CTR</h3><p id="kpiCTR">0</p></div>
     </div>
 
     <!-- Charts -->
     <div class="chart-grid">
-      <div class="chart-container">
-        <canvas id="barChart"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="lineChart1"></canvas>
-      </div>
-      <div class="chart-container">
-        <canvas id="lineChart2"></canvas>
-      </div>
+      <div class="chart-container"><canvas id="barChart"></canvas></div>
+      <div class="chart-container"><canvas id="lineChart1"></canvas></div>
+      <div class="chart-container"><canvas id="lineChart2"></canvas></div>
     </div>
 
-    <!-- Aggregated performance table -->
+    <!-- Table -->
     <div class="table-container">
       <table id="aggTable" class="agg-table">
         <thead>
-          <tr>
-            <th>Store</th>
-            <th>Sum of Spend</th>
-            <th>Sum of Sales</th>
-            <th>ACOS</th>
-          </tr>
+          <tr><th>Store</th><th>Sum of Spend</th><th>Sum of Sales</th><th>ACOS</th></tr>
         </thead>
-        <tbody>
-          <!-- Data rows will be populated by script.js -->
-        </tbody>
-        <tfoot>
-          <!-- Grand total row will be appended here -->
-        </tfoot>
+        <tbody></tbody>
+        <tfoot></tfoot>
       </table>
     </div>
   </div>
 
-  <!-- Your main script -->
+  <!-- ✅ Register Chart Zoom Plugin here -->
   <script>
-    // Register the zoom plugin here before anything else uses Chart
-    Chart.register(window['chartjs-plugin-zoom']);
+    if (window['chartjs-plugin-zoom']) {
+      Chart.register(window['chartjs-plugin-zoom']);
+    } else {
+      console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
+    }
   </script>
+
+  <!-- Load main dashboard logic -->
   <script src="script.js"></script>
-  <!-- Chart.js core -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-<!-- Chart.js Zoom Plugin (MUST come after Chart.js) -->
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.min.js"></script>
-
-<!-- Register plugin AFTER it's loaded -->
-<script>
-  if (window['chartjs-plugin-zoom']) {
-    Chart.register(window['chartjs-plugin-zoom']);
-  } else {
-    console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
-  }
-</script>
-
-<!-- Your main script -->
-<script src="script.js"></script>
 </body>
 </html>
