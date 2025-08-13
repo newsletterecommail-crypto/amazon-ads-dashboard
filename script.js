@@ -184,47 +184,51 @@ window.onload = function () {
   // Update KPI Cards
   // ==========================
   function updateKPIs(data) {
-    const totalSpend = data.reduce((sum, row) => sum + parseFloat(row.Spend || 0), 0);
-    const totalSales = data.reduce((sum, row) => sum + parseFloat(row.Sales || 0), 0);
-    const totalOrders = data.reduce((sum, row) => sum + parseInt(row["7 Day Total Orders (#)"] || 0), 0);
-    const avgACOS = totalSales ? ((totalSpend / totalSales) * 100).toFixed(2) + '%' : '0%';
-    const avgCTR = data.length ? (data.reduce((sum, row) => sum + parseFloat(row["CTR"] || 0), 0) / data.length).toFixed(2) + '%' : '0%';
+  const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
+  const totalSales = data.reduce((sum, row) => sum + parseFloat(row["7 Day Total Sales"] || 0), 0);
+  const totalOrders = data.reduce((sum, row) => sum + parseInt(row["7 Day Total Orders (#)"] || 0), 0);
+  const avgACOS = totalSales ? ((totalSpend / totalSales) * 100).toFixed(2) + '%' : '0%';
+  const avgCTR = data.length
+    ? (data.reduce((sum, row) => sum + parseFloat(row["Click-Thru Rate (CTR)"] || 0), 0) / data.length).toFixed(2) + '%'
+    : '0%';
 
-    kpiSpend.textContent = "$" + totalSpend.toFixed(2);
-    kpiSales.textContent = "$" + totalSales.toFixed(2);
-    kpiOrders.textContent = totalOrders;
-    kpiACOS.textContent = avgACOS;
-    kpiCTR.textContent = avgCTR;
-  }
+  kpiSpend.textContent = "$" + totalSpend.toFixed(2);
+  kpiSales.textContent = "$" + totalSales.toFixed(2);
+  kpiOrders.textContent = totalOrders;
+  kpiACOS.textContent = avgACOS;
+  kpiCTR.textContent = avgCTR;
+}
+
 
   // ==========================
   // Table Renderer
   // ==========================
-  function populateTable(data) {
-    const tableBody = document.querySelector("#dataTable tbody");
-    if (!tableBody) return;
+  ffunction populateTable(data) {
+  const tableBody = document.querySelector("#dataTable tbody");
+  if (!tableBody) return;
 
-    tableBody.innerHTML = "";
+  tableBody.innerHTML = "";
 
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.Date}</td>
-        <td>${row.Store}</td>
-        <td>${row["Campaign Name"] || ""}</td>
-        <td>${row.Spend || "0"}</td>
-        <td>${row.Sales || "0"}</td>
-        <td>${row["7 Day Total Orders (#)"] || "0"}</td>
-        <td>${row["CTR"] || "0"}</td>
-      `;
-      tableBody.appendChild(tr);
-    });
+  data.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.Date}</td>
+      <td>${row.Store}</td>
+      <td>${row["Campaign Name"] || ""}</td>
+      <td>${row["Spend"] || "0"}</td>
+      <td>${row["7 Day Total Sales"] || "0"}</td>
+      <td>${row["7 Day Total Orders (#)"] || "0"}</td>
+      <td>${row["Click-Thru Rate (CTR)"] || "0"}</td>
+    `;
+    tableBody.appendChild(tr);
+  });
 
-    if ($.fn.DataTable.isDataTable('#dataTable')) {
-      $('#dataTable').DataTable().clear().destroy();
-    }
-    $('#dataTable').DataTable();
+  if ($.fn.DataTable.isDataTable('#dataTable')) {
+    $('#dataTable').DataTable().clear().destroy();
   }
+  $('#dataTable').DataTable();
+}
+
 
   // ==========================
   // Chart Stubs
