@@ -203,7 +203,7 @@ window.onload = function () {
   // ==========================
   // Table Renderer
   // ==========================
-  ffunction populateTable(data) {
+  function populateTable(data) {
   const tableBody = document.querySelector("#dataTable tbody");
   if (!tableBody) return;
 
