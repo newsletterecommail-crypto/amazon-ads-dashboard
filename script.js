@@ -1,3 +1,5 @@
+window.onload = function () {
+
 // ==========================
 // Firebase Configuration
 // ==========================
@@ -96,7 +98,7 @@ auth.onAuthStateChanged(user => {
   if (user) {
     loginContainer.style.display = 'none';
     dashboardContainer.classList.remove('hidden');
-    fetchCSVFromGitHub(); // ✅ Call it correctly now
+    fetchCSVFromGitHub();
   } else {
     loginContainer.style.display = 'block';
     dashboardContainer.classList.add('hidden');
@@ -215,9 +217,11 @@ function populateTable(data) {
 // Stub for Charts
 // ==========================
 function renderBarChart(data) {
-  // Your chart logic
+  // Your chart logic here
 }
 
 function renderLineChart(data) {
-  // Your chart logic
+  // Your chart logic here
 }
+
+}; // ✅ This closes window.onload and avoids the "Unexpected token }" error
