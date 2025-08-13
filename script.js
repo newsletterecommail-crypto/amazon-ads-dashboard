@@ -5,7 +5,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
   authDomain: "ecom-ads-dashboard.firebaseapp.com",
   projectId: "ecom-ads-dashboard",
-  storageBucket: "ecom-ads-dashboard.firebasestorage.app",
+  storageBucket: "storageBucket: "ecom-ads-dashboard.appspot.com",
   messagingSenderId: "98800254885",
   appId: "1:98800254885:web:887b2679a23362f8b6b24c",
   measurementId: "G-42KBT0D9ET"
