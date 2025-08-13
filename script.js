@@ -96,12 +96,15 @@ auth.onAuthStateChanged(user => {
   if (user) {
     loginContainer.style.display = 'none';
     dashboardContainer.classList.remove('hidden');
-    // You can call loadDashboardData() here if needed
+
+    // ✅ Load CSV data from GitHub after login
+    fetchCSVFromGitHub(); 
   } else {
     loginContainer.style.display = 'block';
     dashboardContainer.classList.add('hidden');
   }
 });
+
 function fetchCSVFromGitHub() {
   const CSV_URL = "https://raw.githubusercontent.com/newsletterecommail-crypto/amazon-ads-dashboard/main/Products_Search_Term.csv";
 
