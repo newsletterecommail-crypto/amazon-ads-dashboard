@@ -388,6 +388,14 @@ function updateTable(data) {
   trFoot.appendChild(totalAcosCell);
   tfoot.appendChild(trFoot);
 }
+// Initialize DataTable (search, sort, pagination)
+$(document).ready(function () {
+  $('#aggTable').DataTable({
+    paging: true,
+    searching: true,
+    order: [[1, 'desc']] // default sort by Spend column
+  });
+});
 
 function drawBarChart(labels, data) {
   const ctx = document.getElementById('barChart').getContext('2d');
