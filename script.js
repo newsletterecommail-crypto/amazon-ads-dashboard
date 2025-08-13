@@ -123,3 +123,53 @@ function fetchCSVFromGitHub() {
     }
   });
 }
+function updateDashboard(data) {
+  // ========================
+  // 1. Filter Options
+  // ========================
+  const uniqueMonths = [...new Set(data.map(row => row.Date.slice(3)))];
+  const uniqueStores = [...new Set(data.map(row => row.Store))];
+
+  monthFilter.innerHTML = `<option value="All">All</option>` + 
+    uniqueMonths.map(m => `<option value="${m}">${m}</option>`).join('');
+  storeFilter.innerHTML = `<option value="All">All</option>` + 
+    uniqueStores.map(s => `<option value="${s}">${s}</option>`).join('');
+
+  // Set filter listeners
+  monthFilter.onchange = () => applyFilters(data);
+  storeFilter.onchange = () => applyFilters(data);
+
+  // Initial apply
+  applyFilters(data);
+}
+function applyFilters(data) {
+  const selectedMonth = monthFilter.value;
+  const selectedStore = storeFilter.value;
+
+  let filtered = data;
+
+  if (selectedMonth !== "All") {
+    filtered = filtered.filter(row => row.Date.endsWith(selectedMonth));
+  }
+
+  if (selectedStore !== "All") {
+    filtered = filtered.filter(row => row.Store === selectedStore);
+  }
+
+  updateKPIs(filtered);
+  renderBarChart(filtered);
+  renderLineChart(filtered);
+}
+function updateKPIs(data) {
+  const totalSpend = data.reduce((sum, row) => sum + parseFloat(row.Spend || 0), 0);
+  const totalSales = data.reduce((sum, row) => sum + parseFloat(row.Sales || 0), 0);
+  const totalOrders = data.reduce((sum, row) => sum + parseInt(row["7 Day Total Orders (#)"] || 0), 0);
+  const avgACOS = totalSales ? ((totalSpend / totalSales) * 100).toFixed(2) + '%' : '0%';
+  const avgCTR = data.reduce((sum, row) => sum + parseFloat(row["CTR"] || 0), 0) / data.length;
+
+  kpiSpend.textContent = "$" + totalSpend.toFixed(2);
+  kpiSales.textContent = "$" + totalSales.toFixed(2);
+  kpiOrders.textContent = totalOrders;
+  kpiACOS.textContent = avgACOS;
+  kpiCTR.textContent = avgCTR.toFixed(2) + "%";
+}
