@@ -106,22 +106,38 @@ auth.onAuthStateChanged(user => {
 });
 
 // ==========================
-// Fetch CSV from Google Drive
+// Fetch & Merge 2 CSV Files from GitHub
 // ==========================
 function fetchCSVFromGitHub() {
-  const CSV_URL = "https://drive.google.com/uc?export=download&id=1ZIWJs3YikGMRtUqcTokRKqtIR6u2SsQ5w5HCgwf88CE";
+  const CSV_URL_1 = "https://raw.githubusercontent.com/newsletterecommail-crypto/amazon-ads-dashboard/main/report_part1.csv";
+  const CSV_URL_2 = "https://raw.githubusercontent.com/newsletterecommail-crypto/amazon-ads-dashboard/main/report_part2.csv";
 
-  Papa.parse(CSV_URL, {
+  let mergedData = [];
+
+  Papa.parse(CSV_URL_1, {
     download: true,
     header: true,
     skipEmptyLines: true,
-    complete: function(results) {
-      allData = results.data;
-      console.log("✅ CSV Data Loaded", allData);
-      updateDashboard(allData);
+    complete: function(results1) {
+      mergedData = results1.data;
+
+      Papa.parse(CSV_URL_2, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results2) {
+          mergedData = mergedData.concat(results2.data);
+          allData = mergedData;
+          console.log("✅ Merged CSV Data Loaded", allData);
+          updateDashboard(allData);
+        },
+        error: function(err2) {
+          console.error("❌ Error loading report_part2.csv:", err2);
+        }
+      });
     },
-    error: function(err) {
-      console.error("❌ CSV Load Error:", err);
+    error: function(err1) {
+      console.error("❌ Error loading report_part1.csv:", err1);
     }
   });
 }
@@ -224,4 +240,4 @@ function renderLineChart(data) {
   // Your chart logic here
 }
 
-}; // ✅ This closes window.onload and avoids the "Unexpected token }" error
+}; // ✅ closes window.onload
