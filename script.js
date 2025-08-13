@@ -106,7 +106,7 @@ auth.onAuthStateChanged(user => {
 });
 
 function fetchCSVFromGitHub() {
-  const CSV_URL = "https://raw.githubusercontent.com/newsletterecommail-crypto/amazon-ads-dashboard/main/Products_Search_Term.csv";
+  const CSV_URL = "const CSV_URL = "https://drive.google.com/uc?export=download&id=1ZIWJs3YikGMRtUqcTokRKqtIR6u2SsQ5w5HCgwf88CE";
 
   Papa.parse(CSV_URL, {
     download: true,
