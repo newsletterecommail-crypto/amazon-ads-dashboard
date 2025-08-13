@@ -48,18 +48,18 @@ let barChartInstance;
 let lineChart1Instance;
 let lineChart2Instance;
 
-// Populate filter options for month and store
+/**
+ * Populate month and store dropdowns based on the data.
+ */
 function populateFilters(data) {
   const monthSet = new Set();
   const storeSet = new Set();
   data.forEach((row) => {
-    // Collect store values
     if (row['Store']) {
       storeSet.add(row['Store']);
     }
-    // Parse date string and derive month (YYYY-MM)
-    let dateStr = row['Date'];
-    dateStr = String(dateStr).replace(/\//g, '-');
+    // Derive YYYY‑MM from the date string
+    let dateStr = String(row['Date']).replace(/\//g, '-');
     const parts = dateStr.split('-');
     let year, month, day;
     if (parts.length === 3) {
@@ -81,42 +81,47 @@ function populateFilters(data) {
     const monthStr = `${year.toString().padStart(4, '0')}-${String(month).padStart(2, '0')}`;
     monthSet.add(monthStr);
   });
-  // Sort and populate month filter
-  const months = Array.from(monthSet).sort();
+
+  // Populate month filter
   monthFilter.innerHTML = '';
   const defaultOptionM = document.createElement('option');
   defaultOptionM.value = 'All';
   defaultOptionM.textContent = 'All';
   monthFilter.appendChild(defaultOptionM);
-  months.forEach((m) => {
+  Array.from(monthSet).sort().forEach((m) => {
     const opt = document.createElement('option');
     opt.value = m;
     opt.textContent = m;
     monthFilter.appendChild(opt);
   });
-  // Sort and populate store filter
-  const stores = Array.from(storeSet).sort();
+
+  // Populate store filter
   storeFilter.innerHTML = '';
   const defaultOptionS = document.createElement('option');
   defaultOptionS.value = 'All';
   defaultOptionS.textContent = 'All';
   storeFilter.appendChild(defaultOptionS);
-  stores.forEach((s) => {
+  Array.from(storeSet).sort().forEach((s) => {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
     storeFilter.appendChild(opt);
   });
-  // Add change listeners
+
+  // Attach change listeners
   monthFilter.addEventListener('change', applyFilters);
   storeFilter.addEventListener('change', applyFilters);
 }
 
-// Apply selected filters and refresh the dashboard
+/**
+ * Apply month/store filters and trigger re‑render.
+ */
 function applyFilters() {
   let filtered = allData;
   const monthVal = monthFilter.value;
   const storeVal = storeFilter.value;
+
+  // Filter by month (YYYY‑MM)
   if (monthVal && monthVal !== 'All') {
     filtered = filtered.filter((row) => {
       let dateStr = String(row['Date']).replace(/\//g, '-');
@@ -139,13 +144,18 @@ function applyFilters() {
       return monthStr === monthVal;
     });
   }
+
+  // Filter by store
   if (storeVal && storeVal !== 'All') {
     filtered = filtered.filter((row) => row['Store'] === storeVal);
   }
+
   computeAndRender(filtered);
 }
 
-// Sign up function
+/**
+ * Firebase auth helper functions.
+ */
 function signup() {
   const email = emailInput.value;
   const password = passwordInput.value;
@@ -158,7 +168,6 @@ function signup() {
     });
 }
 
-// Login function
 function login() {
   const email = emailInput.value;
   const password = passwordInput.value;
@@ -171,7 +180,6 @@ function login() {
     });
 }
 
-// Logout function
 function logout() {
   auth.signOut();
 }
@@ -181,28 +189,28 @@ signupButton.addEventListener('click', signup);
 loginButton.addEventListener('click', login);
 logoutButton.addEventListener('click', logout);
 
-// Authentication state observer
+/**
+ * Observe authentication state and load data upon login.
+ */
 auth.onAuthStateChanged((user) => {
   if (user) {
-    // User is signed in
     loginContainer.classList.add('hidden');
     dashboardContainer.classList.remove('hidden');
     authMessage.textContent = '';
-    // Load data if not already loaded
     if (!barChartInstance) {
       loadDataAndRender();
     }
   } else {
-    // User is signed out
     loginContainer.classList.remove('hidden');
     dashboardContainer.classList.add('hidden');
     authMessage.textContent = '';
   }
 });
 
-// Function to load CSV, compute metrics and render charts
+/**
+ * Parse CSV file and trigger rendering functions.
+ */
 function loadDataAndRender() {
-  // Parse CSV via PapaParse (requires running over HTTP)
   Papa.parse('Products_Search_Term.csv', {
     download: true,
     header: true,
@@ -219,8 +227,10 @@ function loadDataAndRender() {
   });
 }
 
+/**
+ * Compute metrics, update KPIs, draw charts and refresh the table.
+ */
 function computeAndRender(data) {
-  // Initialize accumulators
   let totalSpend = 0;
   let totalSales = 0;
   let totalOrders = 0;
@@ -231,7 +241,6 @@ function computeAndRender(data) {
   const campaignMap = {};
 
   data.forEach((row) => {
-    // Parse numeric fields (strings may contain commas or whitespace)
     const spend = parseFloat(String(row['Spend']).replace(/,/g, '')) || 0;
     const sales = parseFloat(String(row['7 Day Total Sales ']).replace(/,/g, '')) || 0;
     const orders = parseInt(String(row['7 Day Total Orders (#)']).replace(/,/g, '')) || 0;
@@ -244,27 +253,21 @@ function computeAndRender(data) {
     totalClicks += clicks;
     totalImpressions += impressions;
 
-    // Parse date (assuming dd-mm-yyyy or dd/mm/yyyy)
-    let dateStr = row['Date'];
-    // Normalize separators
-    dateStr = dateStr.replace(/\//g, '-');
+    // Normalize date to yyyy‑mm‑dd
+    let dateStr = String(row['Date']).replace(/\//g, '-');
     const parts = dateStr.split('-');
     let year, month, day;
-    // Determine format; if first part > 12 then it's day-month-year
     if (parts.length === 3) {
       if (parseInt(parts[1]) > 12) {
-        // Possibly yyyy-dd-mm
         year = parseInt(parts[0]);
         month = parseInt(parts[2]) - 1;
         day = parseInt(parts[1]);
       } else {
-        // dd-mm-yyyy
         day = parseInt(parts[0]);
         month = parseInt(parts[1]) - 1;
         year = parseInt(parts[2]);
       }
     } else {
-      // fallback to Date constructor
       const d = new Date(dateStr);
       year = d.getFullYear();
       month = d.getMonth();
@@ -288,18 +291,16 @@ function computeAndRender(data) {
     campaignMap[campaignName] += spend;
   });
 
-  // Compute averages
   const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) : 0;
   const avgACOS = totalSales > 0 ? (totalSpend / totalSales) : 0;
 
-  // Update KPI elements
   kpiSpend.innerText = totalSpend.toFixed(2);
   kpiSales.innerText = totalSales.toFixed(2);
   kpiOrders.innerText = totalOrders;
   kpiACOS.innerText = (avgACOS * 100).toFixed(2) + '%';
   kpiCTR.innerText = (avgCTR * 100).toFixed(2) + '%';
 
-  // Prepare data for charts
+  // Prepare chart data
   const sortedDates = Object.keys(dailyMap).sort();
   const spendList = [];
   const salesList = [];
@@ -315,33 +316,35 @@ function computeAndRender(data) {
     acosList.push(acos);
   });
 
-  // Compute top 10 campaigns by spend
+  // Top campaigns by spend
   const campaignEntries = Object.entries(campaignMap);
   campaignEntries.sort((a, b) => b[1] - a[1]);
   const topCampaigns = campaignEntries.slice(0, 10);
-  const topCampaignNames = topCampaigns.map((entry) => entry[0]);
-  const topCampaignValues = topCampaigns.map((entry) => entry[1]);
+  const topCampaignNames = topCampaigns.map(([name]) => name);
+  const topCampaignValues = topCampaigns.map(([, spend]) => spend);
 
   // Draw charts
   drawBarChart(topCampaignNames, topCampaignValues);
   drawLineChart1(sortedDates, spendList, salesList);
   drawLineChart2(sortedDates, ctrList, acosList);
 
-  // Update aggregated performance table
+  // Refresh table
   updateTable(data);
 }
 
-// Build aggregated performance table grouped by store
+/**
+ * Build aggregated performance table grouped by store.
+ */
 function updateTable(data) {
   const tbody = document.querySelector('#aggTable tbody');
   const tfoot = document.querySelector('#aggTable tfoot');
-  // Clear existing rows
   tbody.innerHTML = '';
   tfoot.innerHTML = '';
-  // Aggregate metrics per store
+
   const storeMap = {};
   let grandSpend = 0;
   let grandSales = 0;
+
   data.forEach((row) => {
     const store = row['Store'] || 'Unknown';
     const spend = parseFloat(String(row['Spend']).replace(/,/g, '')) || 0;
@@ -354,55 +357,46 @@ function updateTable(data) {
     grandSpend += spend;
     grandSales += sales;
   });
-  // Convert to array and sort alphabetically by store
-  const entries = Object.entries(storeMap).sort((a, b) => a[0].localeCompare(b[0]));
-  entries.forEach(([store, vals]) => {
+
+  Object.entries(storeMap).sort((a, b) => a[0].localeCompare(b[0])).forEach(([store, vals]) => {
     const { spend, sales } = vals;
     const acos = sales > 0 ? (spend / sales) : 0;
     const tr = document.createElement('tr');
-    const storeCell = document.createElement('td');
-    storeCell.textContent = store;
-    const spendCell = document.createElement('td');
-    spendCell.textContent = spend.toFixed(2);
-    const salesCell = document.createElement('td');
-    salesCell.textContent = sales.toFixed(2);
-    const acosCell = document.createElement('td');
-    acosCell.textContent = (acos * 100).toFixed(0) + '%';
-    tr.appendChild(storeCell);
-    tr.appendChild(spendCell);
-    tr.appendChild(salesCell);
-    tr.appendChild(acosCell);
+    tr.innerHTML = `
+      <td>${store}</td>
+      <td>${spend.toFixed(2)}</td>
+      <td>${sales.toFixed(2)}</td>
+      <td>${(acos * 100).toFixed(0)}%</td>
+    `;
     tbody.appendChild(tr);
   });
-  // Grand total row
+
   const grandAcos = grandSales > 0 ? (grandSpend / grandSales) : 0;
   const trFoot = document.createElement('tr');
-  const totalLabelCell = document.createElement('td');
-  totalLabelCell.textContent = 'Grand Total';
-  const totalSpendCell = document.createElement('td');
-  totalSpendCell.textContent = grandSpend.toFixed(2);
-  const totalSalesCell = document.createElement('td');
-  totalSalesCell.textContent = grandSales.toFixed(2);
-  const totalAcosCell = document.createElement('td');
-  totalAcosCell.textContent = (grandAcos * 100).toFixed(0) + '%';
-  trFoot.appendChild(totalLabelCell);
-  trFoot.appendChild(totalSpendCell);
-  trFoot.appendChild(totalSalesCell);
-  trFoot.appendChild(totalAcosCell);
+  trFoot.innerHTML = `
+    <td>Grand Total</td>
+    <td>${grandSpend.toFixed(2)}</td>
+    <td>${grandSales.toFixed(2)}</td>
+    <td>${(grandAcos * 100).toFixed(0)}%</td>
+  `;
   tfoot.appendChild(trFoot);
-}
-// Initialize DataTable (search, sort, pagination)
-$(document).ready(function () {
+
+  // Initialize or reinitialize DataTables for interactive table
+  if ($.fn.DataTable.isDataTable('#aggTable')) {
+    $('#aggTable').DataTable().destroy();
+  }
   $('#aggTable').DataTable({
     paging: true,
     searching: true,
-    order: [[1, 'desc']] // default sort by Spend column
+    order: [[1, 'desc']]
   });
-});
+}
 
+/**
+ * Draw horizontal bar chart (top campaigns by spend).
+ */
 function drawBarChart(labels, data) {
   const ctx = document.getElementById('barChart').getContext('2d');
-  // Destroy previous instance if exists
   if (barChartInstance) barChartInstance.destroy();
   barChartInstance = new Chart(ctx, {
     type: 'bar',
@@ -421,33 +415,9 @@ function drawBarChart(labels, data) {
     options: {
       indexAxis: 'y',
       plugins: {
-        legend: { display: false }
-      },
-      scales: {
-        x: {
-          ticks: { color: '#333' }
-        },
-        y: {
-          ticks: { color: '#333' }
-        }
-      }
-    }
-  });
-}
-function drawBarChart(labels, data) {
-  …
-  barChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: { … },
-    options: {
-      indexAxis: 'y',
-      plugins: {
         legend: { display: false },
         zoom: {
-          pan: {
-            enabled: true,
-            mode: 'x'
-          },
+          pan: { enabled: true, mode: 'x' },
           zoom: {
             drag: { enabled: true },
             mode: 'x'
@@ -462,6 +432,9 @@ function drawBarChart(labels, data) {
   });
 }
 
+/**
+ * Draw line chart for Spend vs Sales by date.
+ */
 function drawLineChart1(labels, spendData, salesData) {
   const ctx = document.getElementById('lineChart1').getContext('2d');
   if (lineChart1Instance) lineChart1Instance.destroy();
@@ -490,36 +463,26 @@ function drawLineChart1(labels, spendData, salesData) {
     },
     options: {
       plugins: {
-        legend: { position: 'top' }
+        legend: { position: 'top' },
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: {
+            drag: { enabled: true },
+            mode: 'x'
+          }
+        }
       },
       scales: {
-        x: {
-          ticks: { color: '#333' }
-        },
-        y: {
-          ticks: { color: '#333' }
-        }
+        x: { ticks: { color: '#333' } },
+        y: { ticks: { color: '#333' } }
       }
     }
   });
 }
-options: {
-  plugins: {
-    legend: { position: 'top' },
-    zoom: {
-      pan: { enabled: true, mode: 'x' },
-      zoom: {
-        drag: { enabled: true },
-        mode: 'x'
-      }
-    }
-  },
-  scales: {
-    x: { ticks: { color: '#333' } },
-    y: { ticks: { color: '#333' } }
-  }
-}
 
+/**
+ * Draw line chart for CTR and ACOS by date.
+ */
 function drawLineChart2(labels, ctrData, acosData) {
   const ctx = document.getElementById('lineChart2').getContext('2d');
   if (lineChart2Instance) lineChart2Instance.destroy();
@@ -548,31 +511,19 @@ function drawLineChart2(labels, ctrData, acosData) {
     },
     options: {
       plugins: {
-        legend: { position: 'top' }
+        legend: { position: 'top' },
+        zoom: {
+          pan: { enabled: true, mode: 'x' },
+          zoom: {
+            drag: { enabled: true },
+            mode: 'x'
+          }
+        }
       },
       scales: {
-        x: {
-          ticks: { color: '#333' }
-        },
-        y: {
-          ticks: { color: '#333' }
-        }
+        x: { ticks: { color: '#333' } },
+        y: { ticks: { color: '#333' } }
       }
     }
   });
-}options: {
-  plugins: {
-    legend: { position: 'top' },
-    zoom: {
-      pan: { enabled: true, mode: 'x' },
-      zoom: {
-        drag: { enabled: true },
-        mode: 'x'
-      }
-    }
-  },
-  scales: {
-    x: { ticks: { color: '#333' } },
-    y: { ticks: { color: '#333' } }
-  }
 }
