@@ -98,15 +98,8 @@ auth.onAuthStateChanged(user => {
     dashboardContainer.classList.remove('hidden');
 
     // ✅ Load CSV data from GitHub after login
-    fetchCSVFromGitHub(); 
-  } else {
-    loginContainer.style.display = 'block';
-    dashboardContainer.classList.add('hidden');
-  }
-});
-
-function fetchCSVFromGitHub() {
-  const CSV_URL = "const CSV_URL = "https://drive.google.com/uc?export=download&id=1ZIWJs3YikGMRtUqcTokRKqtIR6u2SsQ5w5HCgwf88CE";
+    function fetchCSVFromGitHub() {
+  const CSV_URL = "https://drive.google.com/uc?export=download&id=1ZIWJs3YikGMRtUqcTokRKqtIR6u2SsQ5w5HCgwf88CE";
 
   Papa.parse(CSV_URL, {
     download: true,
@@ -114,15 +107,16 @@ function fetchCSVFromGitHub() {
     skipEmptyLines: true,
     complete: function(results) {
       allData = results.data;
-      console.log("CSV Data Loaded", allData);
+      console.log("✅ CSV Data Loaded", allData);
 
       updateDashboard(allData); // 🔁 Trigger KPI + Charts update
     },
     error: function(err) {
-      console.error("CSV Load Error:", err);
+      console.error("❌ CSV Load Error:", err);
     }
   });
 }
+
 function updateDashboard(data) {
   // ========================
   // 1. Filter Options
