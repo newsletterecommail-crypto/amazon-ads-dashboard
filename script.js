@@ -33,6 +33,9 @@ const kpiOrders = document.getElementById('kpiOrders');
 const kpiACOS = document.getElementById('kpiACOS');
 const kpiCTR = document.getElementById('kpiCTR');
 
+// Register the Chart.js zoom plugin
+Chart.register(window['chartjs-plugin-zoom']);
+
 // Filter elements
 const monthFilter = document.getElementById('monthFilter');
 const storeFilter = document.getElementById('storeFilter');
@@ -431,6 +434,33 @@ function drawBarChart(labels, data) {
     }
   });
 }
+function drawBarChart(labels, data) {
+  …
+  barChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: { … },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x'
+          },
+          zoom: {
+            drag: { enabled: true },
+            mode: 'x'
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#333' } },
+        y: { ticks: { color: '#333' } }
+      }
+    }
+  });
+}
 
 function drawLineChart1(labels, spendData, salesData) {
   const ctx = document.getElementById('lineChart1').getContext('2d');
@@ -473,6 +503,22 @@ function drawLineChart1(labels, spendData, salesData) {
     }
   });
 }
+options: {
+  plugins: {
+    legend: { position: 'top' },
+    zoom: {
+      pan: { enabled: true, mode: 'x' },
+      zoom: {
+        drag: { enabled: true },
+        mode: 'x'
+      }
+    }
+  },
+  scales: {
+    x: { ticks: { color: '#333' } },
+    y: { ticks: { color: '#333' } }
+  }
+}
 
 function drawLineChart2(labels, ctrData, acosData) {
   const ctx = document.getElementById('lineChart2').getContext('2d');
@@ -514,4 +560,19 @@ function drawLineChart2(labels, ctrData, acosData) {
       }
     }
   });
+}options: {
+  plugins: {
+    legend: { position: 'top' },
+    zoom: {
+      pan: { enabled: true, mode: 'x' },
+      zoom: {
+        drag: { enabled: true },
+        mode: 'x'
+      }
+    }
+  },
+  scales: {
+    x: { ticks: { color: '#333' } },
+    y: { ticks: { color: '#333' } }
+  }
 }
