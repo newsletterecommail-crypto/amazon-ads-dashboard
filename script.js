@@ -191,4 +191,3 @@ function renderBarChart(data) {
 function renderLineChart(data) {
   // Add line chart logic if needed
 }
-}
