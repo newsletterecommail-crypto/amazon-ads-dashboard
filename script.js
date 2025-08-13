@@ -5,7 +5,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
   authDomain: "ecom-ads-dashboard.firebaseapp.com",
   projectId: "ecom-ads-dashboard",
-  storageBucket: "storageBucket: "ecom-ads-dashboard.appspot.com",
+  storageBucket: "ecom-ads-dashboard.appspot.com", // ✅ FIXED LINE
   messagingSenderId: "98800254885",
   appId: "1:98800254885:web:887b2679a23362f8b6b24c",
   measurementId: "G-42KBT0D9ET"
@@ -56,6 +56,10 @@ let allData = [];
 let barChartInstance;
 let lineChart1Instance;
 let lineChart2Instance;
+
+// ==========================
+// Auth Listeners
+// ==========================
 signupButton.addEventListener('click', (e) => {
   e.preventDefault();
   const email = emailInput.value;
@@ -69,6 +73,7 @@ signupButton.addEventListener('click', (e) => {
       authMessage.textContent = error.message;
     });
 });
+
 loginButton.addEventListener('click', (e) => {
   e.preventDefault();
   const email = emailInput.value;
@@ -82,14 +87,16 @@ loginButton.addEventListener('click', (e) => {
       authMessage.textContent = error.message;
     });
 });
+
 logoutButton.addEventListener('click', () => {
   auth.signOut();
 });
+
 auth.onAuthStateChanged(user => {
   if (user) {
     loginContainer.style.display = 'none';
     dashboardContainer.classList.remove('hidden');
-    // You can also call your data loading function here
+    // You can call loadDashboardData() here if needed
   } else {
     loginContainer.style.display = 'block';
     dashboardContainer.classList.add('hidden');
