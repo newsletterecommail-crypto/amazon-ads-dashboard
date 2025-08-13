@@ -8,24 +8,30 @@
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Papa Parse for CSV parsing -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
-
-  <!-- Firebase (compat versions for easier integration) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
   <!-- jQuery & DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
 
-  <!-- Chart.js Zoom Plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.min.js"></script>
+  <!-- Firebase (compat versions for easier integration) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- Papa Parse for CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
+
+  <!-- Chart.js (must load BEFORE plugin) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Chart.js Zoom Plugin (MUST come after chart.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.min.js"></script>
+
+  <!-- Register Chart Zoom Plugin before your script -->
+  <script>
+    Chart.register(ChartZoom);
+  </script>
 </head>
+
 
 <body>
   <header>
