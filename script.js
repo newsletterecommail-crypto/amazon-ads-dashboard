@@ -56,3 +56,42 @@ let allData = [];
 let barChartInstance;
 let lineChart1Instance;
 let lineChart2Instance;
+signupButton.addEventListener('click', (e) => {
+  e.preventDefault();
+  const email = emailInput.value;
+  const password = passwordInput.value;
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(() => {
+      authMessage.textContent = "Signup successful!";
+    })
+    .catch((error) => {
+      authMessage.textContent = error.message;
+    });
+});
+loginButton.addEventListener('click', (e) => {
+  e.preventDefault();
+  const email = emailInput.value;
+  const password = passwordInput.value;
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      authMessage.textContent = "";
+    })
+    .catch((error) => {
+      authMessage.textContent = error.message;
+    });
+});
+logoutButton.addEventListener('click', () => {
+  auth.signOut();
+});
+auth.onAuthStateChanged(user => {
+  if (user) {
+    loginContainer.style.display = 'none';
+    dashboardContainer.classList.remove('hidden');
+    // You can also call your data loading function here
+  } else {
+    loginContainer.style.display = 'block';
+    dashboardContainer.classList.add('hidden');
+  }
+});
