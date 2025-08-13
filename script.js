@@ -102,3 +102,21 @@ auth.onAuthStateChanged(user => {
     dashboardContainer.classList.add('hidden');
   }
 });
+function fetchCSVFromGitHub() {
+  const CSV_URL = "https://raw.githubusercontent.com/newsletterecommail-crypto/amazon-ads-dashboard/main/Products_Search_Term.csv";
+
+  Papa.parse(CSV_URL, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      allData = results.data;
+      console.log("CSV Data Loaded", allData);
+
+      updateDashboard(allData); // 🔁 Trigger KPI + Charts update
+    },
+    error: function(err) {
+      console.error("CSV Load Error:", err);
+    }
+  });
+}
