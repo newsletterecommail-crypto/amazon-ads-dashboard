@@ -4,25 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Amazon Ads Dashboard</title>
+
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
-  <!-- Chart.js library -->
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- Papa Parse for CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js"></script>
-  <!-- Firebase SDK (compat versions for easier integration) -->
+
+  <!-- Firebase (compat versions for easier integration) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-      <!-- DataTables CSS and jQuery -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
-    <!-- Chart.js Zoom Plugin -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0"></script>
+
+  <!-- jQuery & DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+
+  <!-- Chart.js Zoom Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.min.js"></script>
 </head>
+
 <body>
   <header>
     <h1>Amazon Ads Dashboard</h1>
   </header>
+
   <!-- Login/Signup Container -->
   <div id="loginContainer" class="auth-container">
     <h2>Login or Sign up</h2>
@@ -38,6 +47,7 @@
     </form>
     <p id="authMessage" class="message"></p>
   </div>
+
   <!-- Dashboard Container -->
   <div id="dashboardContainer" class="hidden">
     <!-- Filter panel -->
@@ -55,7 +65,11 @@
         </select>
       </div>
     </div>
+
+    <!-- Logout Button -->
     <button id="logoutButton" class="logout">Log out</button>
+
+    <!-- KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card">
         <h3>Total Spend</h3>
@@ -78,6 +92,8 @@
         <p id="kpiCTR">0</p>
       </div>
     </div>
+
+    <!-- Charts -->
     <div class="chart-grid">
       <div class="chart-container">
         <canvas id="barChart"></canvas>
@@ -89,6 +105,7 @@
         <canvas id="lineChart2"></canvas>
       </div>
     </div>
+
     <!-- Aggregated performance table -->
     <div class="table-container">
       <table id="aggTable" class="agg-table">
@@ -109,7 +126,12 @@
       </table>
     </div>
   </div>
-  <!-- Data will be loaded via Papa Parse from the CSV file -->
+
+  <!-- Your main script -->
+  <script>
+    // Register the zoom plugin here before anything else uses Chart
+    Chart.register(window['chartjs-plugin-zoom']);
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
