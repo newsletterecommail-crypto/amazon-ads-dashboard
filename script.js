@@ -5,7 +5,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
   authDomain: "ecom-ads-dashboard.firebaseapp.com",
   projectId: "ecom-ads-dashboard",
-  storageBucket: "ecom-ads-dashboard.appspot.com", // ✅ FIXED LINE
+  storageBucket: "ecom-ads-dashboard.appspot.com",
   messagingSenderId: "98800254885",
   appId: "1:98800254885:web:887b2679a23362f8b6b24c",
   measurementId: "G-42KBT0D9ET"
@@ -96,9 +96,17 @@ auth.onAuthStateChanged(user => {
   if (user) {
     loginContainer.style.display = 'none';
     dashboardContainer.classList.remove('hidden');
+    fetchCSVFromGitHub(); // ✅ Call it correctly now
+  } else {
+    loginContainer.style.display = 'block';
+    dashboardContainer.classList.add('hidden');
+  }
+});
 
-    // ✅ Load CSV data from GitHub after login
-    function fetchCSVFromGitHub() {
+// ==========================
+// Fetch CSV from Google Drive
+// ==========================
+function fetchCSVFromGitHub() {
   const CSV_URL = "https://drive.google.com/uc?export=download&id=1ZIWJs3YikGMRtUqcTokRKqtIR6u2SsQ5w5HCgwf88CE";
 
   Papa.parse(CSV_URL, {
@@ -108,8 +116,7 @@ auth.onAuthStateChanged(user => {
     complete: function(results) {
       allData = results.data;
       console.log("✅ CSV Data Loaded", allData);
-
-      updateDashboard(allData); // 🔁 Trigger KPI + Charts update
+      updateDashboard(allData);
     },
     error: function(err) {
       console.error("❌ CSV Load Error:", err);
@@ -117,10 +124,10 @@ auth.onAuthStateChanged(user => {
   });
 }
 
+// ==========================
+// Update Dashboard
+// ==========================
 function updateDashboard(data) {
-  // ========================
-  // 1. Filter Options
-  // ========================
   const uniqueMonths = [...new Set(data.map(row => row.Date.slice(3)))];
   const uniqueStores = [...new Set(data.map(row => row.Store))];
 
@@ -129,13 +136,15 @@ function updateDashboard(data) {
   storeFilter.innerHTML = `<option value="All">All</option>` + 
     uniqueStores.map(s => `<option value="${s}">${s}</option>`).join('');
 
-  // Set filter listeners
   monthFilter.onchange = () => applyFilters(data);
   storeFilter.onchange = () => applyFilters(data);
 
-  // Initial apply
   applyFilters(data);
 }
+
+// ==========================
+// Apply Filter Logic
+// ==========================
 function applyFilters(data) {
   const selectedMonth = monthFilter.value;
   const selectedStore = storeFilter.value;
@@ -154,6 +163,10 @@ function applyFilters(data) {
   renderBarChart(filtered);
   renderLineChart(filtered);
 }
+
+// ==========================
+// Update KPI Cards
+// ==========================
 function updateKPIs(data) {
   const totalSpend = data.reduce((sum, row) => sum + parseFloat(row.Spend || 0), 0);
   const totalSales = data.reduce((sum, row) => sum + parseFloat(row.Sales || 0), 0);
@@ -166,4 +179,15 @@ function updateKPIs(data) {
   kpiOrders.textContent = totalOrders;
   kpiACOS.textContent = avgACOS;
   kpiCTR.textContent = avgCTR.toFixed(2) + "%";
+}
+
+// ==========================
+// Stub for Charts (Optional)
+// ==========================
+function renderBarChart(data) {
+  // Add bar chart logic if needed
+}
+
+function renderLineChart(data) {
+  // Add line chart logic if needed
 }
