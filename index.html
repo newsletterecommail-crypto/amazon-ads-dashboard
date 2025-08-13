@@ -136,5 +136,22 @@
     Chart.register(window['chartjs-plugin-zoom']);
   </script>
   <script src="script.js"></script>
+  <!-- Chart.js core -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Chart.js Zoom Plugin (MUST come after Chart.js) -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.min.js"></script>
+
+<!-- Register plugin AFTER it's loaded -->
+<script>
+  if (window['chartjs-plugin-zoom']) {
+    Chart.register(window['chartjs-plugin-zoom']);
+  } else {
+    console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
+  }
+</script>
+
+<!-- Your main script -->
+<script src="script.js"></script>
 </body>
 </html>
