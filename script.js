@@ -143,7 +143,6 @@ function updateDashboard(data) {
 }
 
 // ==========================
-// ==========================
 // Apply Filter Logic
 // ==========================
 function applyFilters(data) {
@@ -163,7 +162,7 @@ function applyFilters(data) {
   updateKPIs(filtered);
   renderBarChart(filtered);
   renderLineChart(filtered);
-  populateTable(filtered); // ✅ Add this only if your table exists
+  populateTable(filtered);
 }
 
 // ==========================
