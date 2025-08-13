@@ -20,7 +20,9 @@ const auth = firebase.auth();
 // ==========================
 // Safe Plugin Registration
 // ==========================
-if (window['chartjs-plugin-zoom'])
+if (window['chartjs-plugin-zoom']) {
+  Chart.register(window['chartjs-plugin-zoom']);
+} else {
   console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
 }
 
