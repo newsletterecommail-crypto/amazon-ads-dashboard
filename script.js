@@ -143,6 +143,7 @@ function updateDashboard(data) {
 }
 
 // ==========================
+// ==========================
 // Apply Filter Logic
 // ==========================
 function applyFilters(data) {
@@ -162,6 +163,7 @@ function applyFilters(data) {
   updateKPIs(filtered);
   renderBarChart(filtered);
   renderLineChart(filtered);
+  populateTable(filtered); // ✅ Add this only if your table exists
 }
 
 // ==========================
@@ -182,12 +184,41 @@ function updateKPIs(data) {
 }
 
 // ==========================
-// Stub for Charts (Optional)
+// Populate Table
+// ==========================
+function populateTable(data) {
+  const tableBody = document.querySelector("#dataTable tbody");
+  if (!tableBody) return;
+
+  tableBody.innerHTML = "";
+
+  data.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.Date}</td>
+      <td>${row.Store}</td>
+      <td>${row["Campaign Name"] || ""}</td>
+      <td>${row.Spend || "0"}</td>
+      <td>${row.Sales || "0"}</td>
+      <td>${row["7 Day Total Orders (#)"] || "0"}</td>
+      <td>${row["CTR"] || "0"}</td>
+    `;
+    tableBody.appendChild(tr);
+  });
+
+  if ($.fn.DataTable.isDataTable('#dataTable')) {
+    $('#dataTable').DataTable().clear().destroy();
+  }
+  $('#dataTable').DataTable();
+}
+
+// ==========================
+// Stub for Charts
 // ==========================
 function renderBarChart(data) {
-  // Add bar chart logic if needed
+  // Your chart logic
 }
 
 function renderLineChart(data) {
-  // Add line chart logic if needed
+  // Your chart logic
 }
