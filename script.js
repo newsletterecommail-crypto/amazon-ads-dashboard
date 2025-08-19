@@ -125,7 +125,8 @@ window.onload = function () {
           complete: function (results2) {
             merged = merged.concat(results2.data);
             allData = merged;
-            console.log("✅ Merged CSV Data:", allData);
+            console.log("✅ Merged CSV Data Sample:", allData[0]);
+            console.log("✅ Available Keys:", Object.keys(allData[0]));
             updateDashboard(allData);
           },
           error: function (err2) {
@@ -185,9 +186,14 @@ window.onload = function () {
   // ==========================
   function updateKPIs(data) {
     const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
+
+    // 🔧 Clean & Parse Sales Field
     const totalSales = data.reduce((sum, row) => {
-      return sum + parseFloat((row["7 Day Total Sales"] || "0").replace(/[$,]/g, ''));
+      const rawValue = row["7 Day Total Sales"] || row["7 Day Total Sales ($)"] || "0";
+      const clean = rawValue.toString().replace(/[$,]/g, '');
+      return sum + parseFloat(clean || 0);
     }, 0);
+
     const totalOrders = data.reduce((sum, row) => sum + parseInt(row["7 Day Total Orders (#)"] || 0), 0);
     const avgACOS = totalSales ? ((totalSpend / totalSales) * 100).toFixed(2) + '%' : '0%';
     const avgCTR = data.length
