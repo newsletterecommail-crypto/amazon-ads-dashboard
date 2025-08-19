@@ -125,7 +125,7 @@ window.onload = function () {
           complete: function (results2) {
             merged = merged.concat(results2.data);
             allData = merged;
-            console.log("✅ Merged CSV Data Sample:", allData[0]);
+            console.log("✅ Merged CSV Sample:", allData[0]);
             console.log("✅ Available Keys:", Object.keys(allData[0]));
             updateDashboard(allData);
           },
@@ -147,9 +147,9 @@ window.onload = function () {
     const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))];
     const uniqueStores = [...new Set(data.map(row => row.Store))];
 
-    monthFilter.innerHTML = `<option value="All">All</option>` + 
+    monthFilter.innerHTML = `<option value="All">All</option>` +
       uniqueMonths.map(m => `<option value="${m}">${m}</option>`).join('');
-    storeFilter.innerHTML = `<option value="All">All</option>` + 
+    storeFilter.innerHTML = `<option value="All">All</option>` +
       uniqueStores.map(s => `<option value="${s}">${s}</option>`).join('');
 
     monthFilter.onchange = () => applyFilters(data);
@@ -187,10 +187,14 @@ window.onload = function () {
   function updateKPIs(data) {
     const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
 
-    // 🔧 Clean & Parse Sales Field
+    // 🔍 Detect total sales column dynamically
+    const sample = data[0] || {};
+    let salesKey = Object.keys(sample).find(k => k.toLowerCase().includes("total sales"));
+    if (!salesKey) salesKey = "7 Day Total Sales";
+
     const totalSales = data.reduce((sum, row) => {
-      const rawValue = row["7 Day Total Sales"] || row["7 Day Total Sales ($)"] || "0";
-      const clean = rawValue.toString().replace(/[$,]/g, '');
+      const raw = row[salesKey] || "0";
+      const clean = raw.toString().replace(/[$,]/g, '');
       return sum + parseFloat(clean || 0);
     }, 0);
 
@@ -216,6 +220,10 @@ window.onload = function () {
 
     tableBody.innerHTML = "";
 
+    const sample = data[0] || {};
+    let salesKey = Object.keys(sample).find(k => k.toLowerCase().includes("total sales"));
+    if (!salesKey) salesKey = "7 Day Total Sales";
+
     data.forEach(row => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -223,7 +231,7 @@ window.onload = function () {
         <td>${row.Store}</td>
         <td>${row["Campaign Name"] || ""}</td>
         <td>${row["Spend"] || "0"}</td>
-        <td>${row["7 Day Total Sales"] || "0"}</td>
+        <td>${row[salesKey] || "0"}</td>
         <td>${row["7 Day Total Orders (#)"] || "0"}</td>
         <td>${row["Click-Thru Rate (CTR)"] || "0"}</td>
       `;
@@ -240,11 +248,11 @@ window.onload = function () {
   // Chart Stubs
   // ==========================
   function renderBarChart(data) {
-    // Add logic if needed
+    // Add chart logic here
   }
 
   function renderLineChart(data) {
-    // Add logic if needed
+    // Add chart logic here
   }
 
 }; // ✅ END of window.onload
