@@ -1,8 +1,4 @@
 window.onload = function () {
-
-  // ==========================
-  // Firebase Configuration
-  // ==========================
   const firebaseConfig = {
     apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
     authDomain: "ecom-ads-dashboard.firebaseapp.com",
@@ -13,24 +9,15 @@ window.onload = function () {
     measurementId: "G-42KBT0D9ET"
   };
 
-  // ==========================
-  // Firebase Initialization
-  // ==========================
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  // ==========================
-  // Safe Plugin Registration
-  // ==========================
   if (window['chartjs-plugin-zoom']) {
     Chart.register(window['chartjs-plugin-zoom']);
   } else {
     console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
   }
 
-  // ==========================
-  // DOM Elements
-  // ==========================
   const loginContainer = document.getElementById('loginContainer');
   const dashboardContainer = document.getElementById('dashboardContainer');
   const signupButton = document.getElementById('signupButton');
@@ -40,51 +27,29 @@ window.onload = function () {
   const passwordInput = document.getElementById('password');
   const authMessage = document.getElementById('authMessage');
 
-  // KPI Cards
   const kpiSpend = document.getElementById('kpiSpend');
   const kpiSales = document.getElementById('kpiSales');
   const kpiOrders = document.getElementById('kpiOrders');
   const kpiACOS = document.getElementById('kpiACOS');
   const kpiCTR = document.getElementById('kpiCTR');
 
-  // Filters
   const monthFilter = document.getElementById('monthFilter');
   const storeFilter = document.getElementById('storeFilter');
 
-  // ==========================
-  // Data Storage
-  // ==========================
   let allData = [];
 
-  // ==========================
-  // Auth Listeners
-  // ==========================
   signupButton.addEventListener('click', (e) => {
     e.preventDefault();
-    const email = emailInput.value;
-    const password = passwordInput.value;
-
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        authMessage.textContent = "Signup successful!";
-      })
-      .catch((error) => {
-        authMessage.textContent = error.message;
-      });
+    auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
+      .then(() => authMessage.textContent = "Signup successful!")
+      .catch((error) => authMessage.textContent = error.message);
   });
 
   loginButton.addEventListener('click', (e) => {
     e.preventDefault();
-    const email = emailInput.value;
-    const password = passwordInput.value;
-
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => {
-        authMessage.textContent = "";
-      })
-      .catch((error) => {
-        authMessage.textContent = error.message;
-      });
+    auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+      .then(() => authMessage.textContent = "")
+      .catch((error) => authMessage.textContent = error.message);
   });
 
   logoutButton.addEventListener('click', () => {
@@ -102,9 +67,6 @@ window.onload = function () {
     }
   });
 
-  // ==========================
-  // Fetch & Merge CSV Files
-  // ==========================
   function fetchCSVFromGitHub() {
     const CSV1 = "https://raw.githubusercontent.com/newsletterecommail-crypto/amazon-ads-dashboard/main/report_part1.csv";
     const CSV2 = "https://raw.githubusercontent.com/newsletterecommail-crypto/amazon-ads-dashboard/main/report_part2.csv";
@@ -125,7 +87,7 @@ window.onload = function () {
           complete: function (results2) {
             merged = merged.concat(results2.data);
             allData = merged;
-            console.log("✅ Merged CSV Sample:", allData[0]);
+            console.log("✅ Merged CSV Data Sample:", allData[0]);
             console.log("✅ Available Keys:", Object.keys(allData[0]));
             updateDashboard(allData);
           },
@@ -140,16 +102,13 @@ window.onload = function () {
     });
   }
 
-  // ==========================
-  // Dashboard Update
-  // ==========================
   function updateDashboard(data) {
     const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))];
     const uniqueStores = [...new Set(data.map(row => row.Store))];
 
-    monthFilter.innerHTML = `<option value="All">All</option>` +
+    monthFilter.innerHTML = `<option value="All">All</option>` + 
       uniqueMonths.map(m => `<option value="${m}">${m}</option>`).join('');
-    storeFilter.innerHTML = `<option value="All">All</option>` +
+    storeFilter.innerHTML = `<option value="All">All</option>` + 
       uniqueStores.map(s => `<option value="${s}">${s}</option>`).join('');
 
     monthFilter.onchange = () => applyFilters(data);
@@ -158,9 +117,6 @@ window.onload = function () {
     applyFilters(data);
   }
 
-  // ==========================
-  // Apply Filters
-  // ==========================
   function applyFilters(data) {
     const selectedMonth = monthFilter.value;
     const selectedStore = storeFilter.value;
@@ -181,20 +137,16 @@ window.onload = function () {
     populateTable(filtered);
   }
 
-  // ==========================
-  // Update KPI Cards
-  // ==========================
   function updateKPIs(data) {
     const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
 
-    // 🔍 Detect total sales column dynamically
     const sample = data[0] || {};
     let salesKey = Object.keys(sample).find(k => k.toLowerCase().includes("total sales"));
-    if (!salesKey) salesKey = "7 Day Total Sales";
+    if (!salesKey) salesKey = "7 Day Total Sales ";
 
     const totalSales = data.reduce((sum, row) => {
-      const raw = row[salesKey] || "0";
-      const clean = raw.toString().replace(/[$,]/g, '');
+      const rawValue = row[salesKey] || "0";
+      const clean = rawValue.toString().replace(/[$,]/g, '');
       return sum + parseFloat(clean || 0);
     }, 0);
 
@@ -211,9 +163,6 @@ window.onload = function () {
     kpiCTR.textContent = avgCTR;
   }
 
-  // ==========================
-  // Table Renderer
-  // ==========================
   function populateTable(data) {
     const tableBody = document.querySelector("#dataTable tbody");
     if (!tableBody) return;
@@ -222,7 +171,7 @@ window.onload = function () {
 
     const sample = data[0] || {};
     let salesKey = Object.keys(sample).find(k => k.toLowerCase().includes("total sales"));
-    if (!salesKey) salesKey = "7 Day Total Sales";
+    if (!salesKey) salesKey = "7 Day Total Sales ";
 
     data.forEach(row => {
       const tr = document.createElement("tr");
@@ -244,15 +193,11 @@ window.onload = function () {
     $('#dataTable').DataTable();
   }
 
-  // ==========================
-  // Chart Stubs
-  // ==========================
   function renderBarChart(data) {
-    // Add chart logic here
+    // Add logic if needed
   }
 
   function renderLineChart(data) {
-    // Add chart logic here
+    // Add logic if needed
   }
-
-}; // ✅ END of window.onload
+};
