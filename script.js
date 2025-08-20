@@ -1,92 +1,10 @@
 window.onload = () => {
-  const firebaseConfig = {
-    apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
-    authDomain: "ecom-ads-dashboard.firebaseapp.com",
-    projectId: "ecom-ads-dashboard",
-    storageBucket: "ecom-ads-dashboard.appspot.com",
-    messagingSenderId: "98800254885",
-    appId: "1:98800254885:web:887b2679a23362f8b6b24c",
-    measurementId: "G-42KBT0D9ET"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-
-  if (typeof ChartZoom !== "undefined") {
-    Chart.register(ChartZoom);
-  } else {
-    console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
-  }
-
-  const loginContainer = document.getElementById('loginContainer');
-  const dashboardContainer = document.getElementById('dashboardContainer');
-  const signupButton = document.getElementById('signupButton');
-  const loginButton = document.getElementById('loginButton');
-  const logoutButton = document.getElementById('logoutButton');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const authMessage = document.getElementById('authMessage');
-
-  const kpiSpend = document.getElementById('kpiSpend');
-  const kpiSales = document.getElementById('kpiSales');
-  const kpiOrders = document.getElementById('kpiOrders');
-  const kpiACOS = document.getElementById('kpiACOS');
-  const kpiCTR = document.getElementById('kpiCTR');
-
-  const monthFilter = document.getElementById('monthFilter');
-  const storeFilter = document.getElementById('storeFilter');
-
+  const CSV1 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
+  const CSV2 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part2.csv";
   let allData = [];
 
-  signupButton.addEventListener('click', (e) => {
-    e.preventDefault();
-    auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-      .then(() => authMessage.textContent = "Signup successful!")
-      .catch((error) => authMessage.textContent = error.message);
-  });
-
-  loginButton.addEventListener('click', (e) => {
-    e.preventDefault();
-    auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-      .then(() => authMessage.textContent = "")
-      .catch((error) => authMessage.textContent = error.message);
-  });
-
-  logoutButton.addEventListener('click', () => auth.signOut());
-
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      loginContainer.style.display = 'none';
-      dashboardContainer.classList.remove('hidden');
-      insertCheckboxes();
-      fetchCSVFromGitHub();
-    } else {
-      loginContainer.style.display = 'block';
-      dashboardContainer.classList.add('hidden');
-    }
-  });
-
-  function insertCheckboxes() {
-    const checkboxContainer = document.createElement('div');
-    checkboxContainer.id = "checkboxContainer";
-    checkboxContainer.style.margin = "10px 0";
-    checkboxContainer.innerHTML = `
-      <label><input type="checkbox" class="metric-checkbox" value="Spend" checked> Show Spend</label>
-      <label><input type="checkbox" class="metric-checkbox" value="Sales" checked> Show Sales</label>
-      <label><input type="checkbox" class="metric-checkbox" value="Orders" checked> Show Orders</label>
-    `;
-    const filtersRow = document.querySelector('#monthFilter').parentNode;
-    filtersRow.appendChild(checkboxContainer);
-  }
-
-  function fetchCSVFromGitHub() {
-    const CSV1 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
-    const CSV2 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part2.csv";
-
-    Promise.all([
-      fetch(CSV1).then(r => r.text()),
-      fetch(CSV2).then(r => r.text())
-    ]).then(([text1, text2]) => {
+  Promise.all([fetch(CSV1).then(r => r.text()), fetch(CSV2).then(r => r.text())])
+    .then(([text1, text2]) => {
       Papa.parse(text1, {
         header: true,
         skipEmptyLines: true,
@@ -102,93 +20,210 @@ window.onload = () => {
         }
       });
     });
-  }
 
   function initDashboard(data) {
-    const monthSet = new Set();
-    const storeSet = new Set();
+    const monthChoices = new Choices('#monthFilter', { removeItemButton: true });
+    const storeChoices = new Choices('#storeFilter', { removeItemButton: true });
+
+    const months = new Set();
+    const stores = new Set();
 
     data.forEach(row => {
-      let rowMonth = "";
-      const dateParts = row["Date"]?.split("-");
-      if (dateParts.length === 3) {
-        const [day, month, year] = dateParts;
-        rowMonth = `${month}-${year}`;
-        monthSet.add(rowMonth);
-      } else {
-        console.warn("Invalid Date:", row["Date"]);
+      const dt = new Date(row["Date"]);
+      if (!isNaN(dt)) {
+        const month = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+        months.add(month);
       }
-
-      if (row.Store) storeSet.add(row.Store);
+      if (row["Store"]) stores.add(row["Store"]);
     });
 
-    const months = Array.from(monthSet).sort().reverse();
-    const stores = Array.from(storeSet).sort();
+    monthChoices.setChoices([...months].sort().map(m => ({ value: m, label: m })), 'value', 'label', true);
+    storeChoices.setChoices([...stores].sort().map(s => ({ value: s, label: s })), 'value', 'label', true);
 
-    monthFilter.innerHTML = `<option value="All">All</option>` + months.map(m => `<option value="${m}">${m}</option>`).join('');
-    storeFilter.innerHTML = `<option value="All">All</option>` + stores.map(s => `<option value="${s}">${s}</option>`).join('');
-
-    monthFilter.addEventListener('change', () => applyFilters(data));
-    storeFilter.addEventListener('change', () => applyFilters(data));
+    document.getElementById("monthFilter").addEventListener("change", () => applyFilters(data));
+    document.getElementById("storeFilter").addEventListener("change", () => applyFilters(data));
 
     applyFilters(data);
   }
 
   function applyFilters(data) {
-    const selectedMonth = monthFilter.value;
-    const selectedStore = storeFilter.value;
+    const selectedMonths = Array.from(document.getElementById("monthFilter").selectedOptions).map(o => o.value);
+    const selectedStores = Array.from(document.getElementById("storeFilter").selectedOptions).map(o => o.value);
 
     const filtered = data.filter(row => {
-      let rowMonth = "";
-      const dateParts = row["Date"]?.split("-");
-      if (dateParts.length === 3) {
-        const [day, month, year] = dateParts;
-        rowMonth = `${month}-${year}`;
-      }
-
-      const matchMonth = selectedMonth === "All" || rowMonth === selectedMonth;
-      const matchStore = selectedStore === "All" || row.Store === selectedStore;
-
+      const dt = new Date(row["Date"]);
+      const rowMonth = !isNaN(dt) ? `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}` : "";
+      const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(rowMonth);
+      const matchStore = selectedStores.length === 0 || selectedStores.includes(row["Store"]);
       return matchMonth && matchStore;
     });
 
-    console.log("📅 Selected Month:", selectedMonth);
-    console.log("🏪 Selected Store:", selectedStore);
-    console.log("✅ Filtered rows:", filtered.length);
-
     updateKPIs(filtered);
-    renderBarChart(filtered);
-    renderLineChart(filtered);
-    renderPivotTable(filtered);
+    renderTable(filtered);
+    renderCharts(filtered);
+    updatePivotTable(filtered);
   }
 
   function updateKPIs(data) {
-    let spend = 0, sales = 0, orders = 0, acosSum = 0, ctrSum = 0, count = 0;
+    const spend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
+    const sales = data.reduce((sum, row) => sum + parseFloat(row["7 Day Total Sales "] || 0), 0);
+    const orders = data.reduce((sum, row) => sum + parseInt(row["Orders"] || 0), 0);
+    const acos = sales !== 0 ? (spend / sales) * 100 : 0;
+    const ctrs = data.map(row => parseFloat(row["CTR"] || 0)).filter(v => !isNaN(v));
+    const avgCtr = ctrs.length ? ctrs.reduce((a, b) => a + b, 0) / ctrs.length : 0;
+
+    document.getElementById("kpiSpend").textContent = `$${spend.toFixed(2)}`;
+    document.getElementById("kpiSales").textContent = `$${sales.toFixed(2)}`;
+    document.getElementById("kpiOrders").textContent = orders;
+    document.getElementById("kpiACOS").textContent = `${acos.toFixed(2)}%`;
+    document.getElementById("kpiCTR").textContent = `${avgCtr.toFixed(2)}%`;
+  }
+
+  function renderTable(data) {
+    if ($.fn.DataTable.isDataTable("#dataTable")) {
+      $('#dataTable').DataTable().clear().rows.add(data).draw();
+    } else {
+      $('#dataTable').DataTable({
+        data: data,
+        columns: [
+          { data: "Date" },
+          { data: "Store" },
+          { data: "Campaign Name" },
+          { data: "Spend" },
+          { data: "7 Day Total Sales " },
+          { data: "Orders" },
+          { data: "CTR" }
+        ]
+      });
+    }
+  }
+
+  let barChart, lineChart1, lineChart2;
+
+  function renderCharts(data) {
+    const campaigns = {};
     data.forEach(row => {
-      spend += parseFloat(row.Spend) || 0;
-      sales += parseFloat(row["7 Day Total Sales"]?.replace(/[^0-9.]/g, "")) || 0;
-      orders += parseInt(row["7 Day Total Orders (#)"]) || 0;
-      acosSum += parseFloat(row["Total Advertising Cost of Sales (ACOS)"]?.replace(/[^0-9.]/g, "")) || 0;
-      ctrSum += parseFloat(row["Click-Thru Rate (CTR)"]?.replace(/[^0-9.]/g, "")) || 0;
-      count++;
+      const name = row["Campaign Name"];
+      if (!campaigns[name]) {
+        campaigns[name] = { spend: 0, sales: 0, ctr: [] };
+      }
+      campaigns[name].spend += parseFloat(row["Spend"] || 0);
+      campaigns[name].sales += parseFloat(row["7 Day Total Sales "] || 0);
+      const ctrVal = parseFloat(row["CTR"]);
+      if (!isNaN(ctrVal)) campaigns[name].ctr.push(ctrVal);
     });
 
-    kpiSpend.textContent = `$${spend.toFixed(2)}`;
-    kpiSales.textContent = `$${sales.toFixed(2)}`;
-    kpiOrders.textContent = orders;
-    kpiACOS.textContent = `${(count ? acosSum / count : 0).toFixed(2)}%`;
-    kpiCTR.textContent = `${(count ? ctrSum / count : 0).toFixed(2)}%`;
+    const labels = Object.keys(campaigns);
+    const spendData = labels.map(l => campaigns[l].spend);
+    const salesData = labels.map(l => campaigns[l].sales);
+    const ctrData = labels.map(l => {
+      const ctrs = campaigns[l].ctr;
+      return ctrs.length ? ctrs.reduce((a, b) => a + b, 0) / ctrs.length : 0;
+    });
+
+    if (barChart) barChart.destroy();
+    if (lineChart1) lineChart1.destroy();
+    if (lineChart2) lineChart2.destroy();
+
+    barChart = new Chart(document.getElementById("barChart"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          { label: "Spend", data: spendData, backgroundColor: "#4285F4" },
+          { label: "Sales", data: salesData, backgroundColor: "#0F9D58" }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { zoom: { pan: { enabled: true }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: "x" } } }
+      }
+    });
+
+    lineChart1 = new Chart(document.getElementById("lineChart1"), {
+      type: "line",
+      data: { labels, datasets: [{ label: "CTR", data: ctrData, borderColor: "#F4B400", fill: false }] },
+      options: { responsive: true }
+    });
+
+    lineChart2 = new Chart(document.getElementById("lineChart2"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          { label: "Spend", data: spendData, borderColor: "#4285F4", fill: false },
+          { label: "Sales", data: salesData, borderColor: "#0F9D58", fill: false }
+        ]
+      },
+      options: { responsive: true }
+    });
   }
 
-  function renderBarChart(data) {
-    // placeholder logic
+  function updatePivotTable(data) {
+    const summary = {};
+    data.forEach(row => {
+      const store = row["Store"];
+      if (!summary[store]) summary[store] = { spend: 0, sales: 0 };
+      summary[store].spend += parseFloat(row["Spend"] || 0);
+      summary[store].sales += parseFloat(row["7 Day Total Sales "] || 0);
+    });
+
+    const tbody = document.querySelector("#pivotTable tbody");
+    tbody.innerHTML = "";
+
+    Object.entries(summary).forEach(([store, vals]) => {
+      const acos = vals.sales ? (vals.spend / vals.sales) * 100 : 0;
+      const row = `<tr><td>${store}</td><td>${vals.spend.toFixed(2)}</td><td>${vals.sales.toFixed(2)}</td><td>${acos.toFixed(2)}%</td></tr>`;
+      tbody.innerHTML += row;
+    });
   }
 
-  function renderLineChart(data) {
-    // placeholder logic
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
+    authDomain: "ecom-ads-dashboard.firebaseapp.com",
+    projectId: "ecom-ads-dashboard",
+    storageBucket: "ecom-ads-dashboard.appspot.com",
+    messagingSenderId: "98800254885",
+    appId: "1:98800254885:web:887b2679a23362f8b6b24c",
+    measurementId: "G-42KBT0D9ET"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  const loginContainer = document.getElementById('loginContainer');
+  const dashboardContainer = document.getElementById('dashboardContainer');
+  const authMessage = document.getElementById('authMessage');
+
+  document.getElementById("signupButton").addEventListener("click", () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => showDashboard())
+      .catch(error => authMessage.textContent = error.message);
+  });
+
+  document.getElementById("loginButton").addEventListener("click", () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => showDashboard())
+      .catch(error => authMessage.textContent = error.message);
+  });
+
+  document.getElementById("logoutButton").addEventListener("click", () => {
+    auth.signOut().then(() => {
+      loginContainer.classList.remove("hidden");
+      dashboardContainer.classList.add("hidden");
+    });
+  });
+
+  function showDashboard() {
+    loginContainer.classList.add("hidden");
+    dashboardContainer.classList.remove("hidden");
   }
 
-  function renderPivotTable(data) {
-    // placeholder logic
-  }
+  auth.onAuthStateChanged(user => {
+    if (user) showDashboard();
+  });
 };
