@@ -103,36 +103,25 @@ window.onload = function () {
   }
 
   function updateDashboard(data) {
-    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
-    const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
+  const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
+  const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
 
-    const monthOptions = uniqueMonths.map(month => `<label><input type="checkbox" value="${month}" checked> ${month}</label>`).join('');
-    const storeOptions = uniqueStores.map(store => `<label><input type="checkbox" value="${store}" checked> ${store}</label>`).join('');
+  monthFilter.innerHTML = uniqueMonths.map(month =>
+    `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
+  ).join('') + `<label><input type="checkbox" value="All"> All</label>`;
 
-    monthFilter.innerHTML = `
-      <button class="dropdown-toggle">Months ▼</button>
-      <div class="dropdown-options">
-        ${monthOptions}
-        <label><input type="checkbox" value="All"> All</label>
-      </div>
-    `;
+  storeFilter.innerHTML = uniqueStores.map(store =>
+    `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
+  ).join('') + `<label><input type="checkbox" value="All"> All</label>`;
 
-    storeFilter.innerHTML = `
-      <button class="dropdown-toggle">Stores ▼</button>
-      <div class="dropdown-options">
-        ${storeOptions}
-        <label><input type="checkbox" value="All"> All</label>
-      </div>
-    `;
+  monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+  storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
 
-    monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-    storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+  enableAllCheckboxToggle('monthFilter', data);
+  enableAllCheckboxToggle('storeFilter', data);
 
-    enableAllCheckboxToggle('monthFilter', data);
-    enableAllCheckboxToggle('storeFilter', data);
-
-    applyFilters(data);
-  }
+  applyFilters(data);
+}
 
   function enableAllCheckboxToggle(groupId, data) {
     const container = document.getElementById(groupId);
