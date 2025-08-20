@@ -1,10 +1,3 @@
-// ✅ This is the final updated version of your script.js with working:
-// - Firebase Auth
-// - Month & Store dropdowns
-// - Optional checkboxes below dropdowns
-// - Chart rendering
-// - Pivot table rendering
-
 window.onload = () => {
   const firebaseConfig = {
     apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
@@ -42,6 +35,7 @@ window.onload = () => {
 
   const monthFilter = document.getElementById('monthFilter');
   const storeFilter = document.getElementById('storeFilter');
+  const checkboxContainer = document.getElementById('checkboxContainer');
 
   let allData = [];
 
@@ -124,6 +118,13 @@ window.onload = () => {
     monthFilter.addEventListener('change', () => applyFilters(data));
     storeFilter.addEventListener('change', () => applyFilters(data));
 
+    checkboxContainer.innerHTML = `
+      <label><input type="checkbox" id="showSpend" checked> Spend</label>
+      <label><input type="checkbox" id="showSales" checked> Sales</label>
+      <label><input type="checkbox" id="showOrders" checked> Orders</label>
+    `;
+    checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+
     applyFilters(data);
   }
 
@@ -170,14 +171,14 @@ window.onload = () => {
   }
 
   function renderBarChart(data) {
-    // Insert updated working chart logic here
+    // TODO: Add Chart.js bar chart here
   }
 
   function renderLineChart(data) {
-    // Insert updated working chart logic here
+    // TODO: Add Chart.js line chart here
   }
 
   function renderPivotTable(data) {
-    // Insert updated working table logic here
+    // TODO: Add DataTable logic here
   }
 };
