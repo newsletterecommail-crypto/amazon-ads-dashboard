@@ -242,3 +242,22 @@ window.onload = function () {
     });
   }
 };
+function enableAllCheckboxToggle(groupId) {
+  const container = document.getElementById(groupId);
+  container.addEventListener('change', function (e) {
+    if (e.target.value === "All") {
+      const isChecked = e.target.checked;
+      container.querySelectorAll('input[type=checkbox]').forEach(cb => {
+        cb.checked = cb.value === "All" || !isChecked;
+      });
+    } else {
+      const allBox = container.querySelector('input[value="All"]');
+      if (allBox) allBox.checked = false;
+    }
+    applyFilters(allData); // Re-apply filters instantly
+  });
+}
+
+// Call for both groups
+enableAllCheckboxToggle('monthFilter');
+enableAllCheckboxToggle('storeFilter');
