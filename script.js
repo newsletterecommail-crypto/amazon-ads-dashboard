@@ -1,7 +1,4 @@
 window.onload = function () {
-  // ==========================
-  // Firebase Configuration
-  // ==========================
   const firebaseConfig = {
     apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
     authDomain: "ecom-ads-dashboard.firebaseapp.com",
@@ -22,16 +19,12 @@ window.onload = function () {
   const logoutButton = document.getElementById('logoutButton');
   const authMessage = document.getElementById('authMessage');
 
-  // ==========================
-  // CSV Source (GitHub hosted)
-  // ==========================
   const csvUrl = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
-
   let allData = [];
 
-  // ==========================
-  // Authentication Logic
-  // ==========================
+  const monthFilter = document.getElementById('monthFilter');
+  const storeFilter = document.getElementById('storeFilter');
+
   signupButton.addEventListener('click', () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -63,9 +56,6 @@ window.onload = function () {
     }
   });
 
-  // ==========================
-  // Fetch and Parse CSV
-  // ==========================
   function fetchAndParseCSV() {
     Papa.parse(csvUrl, {
       download: true,
@@ -78,21 +68,12 @@ window.onload = function () {
     });
   }
 
-  // ==========================
-  // Filter Controls
-  // ==========================
-  const monthFilter = document.getElementById('monthFilter');
-  const storeFilter = document.getElementById('storeFilter');
-  const portfolioFilter = document.getElementById('portfolioFilter');
-
   function populateFilters() {
     const months = [...new Set(allData.map(d => d["Month"]))].sort();
     const stores = [...new Set(allData.map(d => d["Store"]))].sort();
-    const portfolios = [...new Set(allData.map(d => d["Portfolio name"]))].sort();
 
     addCheckboxes(monthFilter, months);
     addCheckboxes(storeFilter, stores);
-    addCheckboxes(portfolioFilter, portfolios);
 
     document.querySelectorAll('.dropdown-content input').forEach(input => {
       input.addEventListener('change', updateDashboard);
@@ -109,19 +90,14 @@ window.onload = function () {
     });
   }
 
-  // ==========================
-  // Dashboard Logic
-  // ==========================
   function updateDashboard() {
     const selectedMonths = getCheckedValues(monthFilter);
     const selectedStores = getCheckedValues(storeFilter);
-    const selectedPortfolios = getCheckedValues(portfolioFilter);
 
     let filtered = allData.filter(row => {
       const inMonth = selectedMonths.includes("All") || selectedMonths.includes(row["Month"]);
       const inStore = selectedStores.includes("All") || selectedStores.includes(row["Store"]);
-      const inPortfolio = selectedPortfolios.includes("All") || selectedPortfolios.includes(row["Portfolio name"]);
-      return inMonth && inStore && inPortfolio;
+      return inMonth && inStore;
     });
 
     updateKPIs(filtered);
@@ -134,9 +110,6 @@ window.onload = function () {
     return [...container.querySelectorAll('input:checked')].map(input => input.value);
   }
 
-  // ==========================
-  // KPI Cards
-  // ==========================
   function updateKPIs(data) {
     const spend = sum(data, "Spend");
     const sales = sum(data, "7 Day Total Sales");
@@ -161,9 +134,6 @@ window.onload = function () {
     return valid.length ? total / valid.length : 0;
   }
 
-  // ==========================
-  // Charts
-  // ==========================
   let barChart, lineChart1, lineChart2;
 
   function updateCharts(data) {
@@ -214,9 +184,6 @@ window.onload = function () {
     });
   }
 
-  // ==========================
-  // Data Table
-  // ==========================
   function updateTable(data) {
     const table = $('#dataTable').DataTable();
     table.clear();
@@ -240,9 +207,6 @@ window.onload = function () {
     $('#dataTable').DataTable();
   });
 
-  // ==========================
-  // Pivot Table
-  // ==========================
   function updatePivotTable(data) {
     const pivot = {};
 
