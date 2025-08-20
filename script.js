@@ -211,3 +211,133 @@ window.onload = function () {
     // Add your pivot table logic here
   }
 };
+function renderBarChart(data) {
+  const ctx = document.getElementById('barChart').getContext('2d');
+  const campaignSpend = {};
+
+  data.forEach(row => {
+    const campaign = row["Campaign Name"];
+    const spend = parseFloat(row.Spend) || 0;
+    if (campaignSpend[campaign]) {
+      campaignSpend[campaign] += spend;
+    } else {
+      campaignSpend[campaign] = spend;
+    }
+  });
+
+  const topCampaigns = Object.entries(campaignSpend)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+
+  const labels = topCampaigns.map(e => e[0]);
+  const values = topCampaigns.map(e => e[1]);
+
+  if (window.barChartObj) window.barChartObj.destroy();
+  window.barChartObj = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Top 10 Campaign Spend ($)',
+        data: values,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        zoom: {
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+          pan: { enabled: true, mode: 'x' }
+        }
+      }
+    }
+  });
+}
+
+function renderLineChart(data) {
+  const ctx1 = document.getElementById('lineChart1').getContext('2d');
+  const ctx2 = document.getElementById('lineChart2').getContext('2d');
+
+  const dateMap = {};
+  data.forEach(row => {
+    const date = row.Date;
+    const spend = parseFloat(row.Spend) || 0;
+    const sales = parseFloat(row['7 Day Total Sales']) || 0;
+    const ctr = parseFloat(row['Click-Thru Rate (CTR)']) || 0;
+    const acos = parseFloat(row['Total Advertising Cost of Sales (ACOS)']) || 0;
+
+    if (!dateMap[date]) {
+      dateMap[date] = { spend: 0, sales: 0, ctr: 0, acos: 0 };
+    }
+    dateMap[date].spend += spend;
+    dateMap[date].sales += sales;
+    dateMap[date].ctr += ctr;
+    dateMap[date].acos += acos;
+  });
+
+  const sortedDates = Object.keys(dateMap).sort();
+  const spendData = sortedDates.map(date => dateMap[date].spend);
+  const salesData = sortedDates.map(date => dateMap[date].sales);
+  const ctrData = sortedDates.map(date => dateMap[date].ctr);
+  const acosData = sortedDates.map(date => dateMap[date].acos);
+
+  if (window.lineChart1Obj) window.lineChart1Obj.destroy();
+  if (window.lineChart2Obj) window.lineChart2Obj.destroy();
+
+  window.lineChart1Obj = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: sortedDates,
+      datasets: [
+        { label: 'Spend', data: spendData, borderColor: 'blue', fill: false },
+        { label: 'Sales', data: salesData, borderColor: 'green', fill: false }
+      ]
+    },
+    options: { responsive: true }
+  });
+
+  window.lineChart2Obj = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: sortedDates,
+      datasets: [
+        { label: 'CTR', data: ctrData, borderColor: 'orange', fill: false },
+        { label: 'ACOS', data: acosData, borderColor: 'red', fill: false }
+      ]
+    },
+    options: { responsive: true }
+  });
+}
+
+function renderPivotTable(data) {
+  const pivotBody = document.querySelector("#pivotTable tbody");
+  pivotBody.innerHTML = "";
+
+  const storeMap = {};
+  data.forEach(row => {
+    const store = row.Store;
+    const spend = parseFloat(row.Spend) || 0;
+    const sales = parseFloat(row['7 Day Total Sales']) || 0;
+    const acos = parseFloat(row['Total Advertising Cost of Sales (ACOS)']) || 0;
+
+    if (!storeMap[store]) {
+      storeMap[store] = { spend: 0, sales: 0, acosSum: 0, count: 0 };
+    }
+    storeMap[store].spend += spend;
+    storeMap[store].sales += sales;
+    storeMap[store].acosSum += acos;
+    storeMap[store].count++;
+  });
+
+  Object.keys(storeMap).forEach(store => {
+    const s = storeMap[store];
+    const row = `<tr>
+      <td>${store}</td>
+      <td>$${s.spend.toFixed(2)}</td>
+      <td>$${s.sales.toFixed(2)}</td>
+      <td>${(s.acosSum / s.count).toFixed(2)}%</td>
+    </tr>`;
+    pivotBody.insertAdjacentHTML("beforeend", row);
+  });
+}
