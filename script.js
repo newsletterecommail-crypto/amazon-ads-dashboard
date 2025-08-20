@@ -223,7 +223,7 @@ window.onload = function () {
   const ctx = document.getElementById("lineChart1").getContext("2d");
   if (window.lineChartInstance) window.lineChartInstance.destroy();
 
-  // Auto-detect the sales column name
+  // Dynamically find the correct sales key
   const firstRow = data[0] || {};
   const salesKey = Object.keys(firstRow).find(k =>
     k.toLowerCase().includes("total sales")
