@@ -61,22 +61,24 @@
   <div id="dashboardContainer" class="hidden">
 
     <!-- Filters -->
-<div class="filter-panel">
-  <div class="filter-group">
-    <label for="monthFilter">Select Month:</label>
-    <select id="monthFilter"></select>
-  </div>
-  <div class="filter-group">
-    <label for="storeFilter">Select Store:</label>
-    <select id="storeFilter"></select>
-  </div>
-  <button id="logoutButton" class="logout">Log out</button>
-</div>
+    <div class="filter-panel">
+      <div class="filter-group">
+        <label for="monthFilter">Select Month:</label>
+        <select id="monthFilter"></select>
+      </div>
+      <div class="filter-group">
+        <label for="storeFilter">Select Store:</label>
+        <select id="storeFilter"></select>
+      </div>
+      <button id="logoutButton" class="logout">Log out</button>
+    </div>
 
-     
-
-    <!-- Logout Button -->
-    <button id="logoutButton" class="logout">Log out</button>
+    <!-- Toggle Checkboxes -->
+    <div class="checkbox-group" style="margin: 10px 0 20px 0;">
+      <label><input type="checkbox" id="toggleSpend" checked> Show Spend</label>
+      <label><input type="checkbox" id="toggleSales" checked> Show Sales</label>
+      <label><input type="checkbox" id="toggleOrders" checked> Show Orders</label>
+    </div>
 
     <!-- KPI Cards -->
     <div class="kpi-grid">
