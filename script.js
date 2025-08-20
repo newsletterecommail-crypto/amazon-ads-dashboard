@@ -224,15 +224,15 @@ window.onload = function () {
   if (window.lineChartInstance) window.lineChartInstance.destroy();
 
   const dateSales = {};
+
   data.forEach(row => {
-    const date = row.Date?.trim() || "Unknown";
+    const date = row["Date"]?.trim() || "Unknown";
+    const rawSales = row["7 Day Total Sales"] || "0";
+    const sales = parseFloat(rawSales.toString().replace(/[$,]/g, ""));
 
-    // Dynamically detect sales column
-    let salesKey = Object.keys(row).find(k => k.toLowerCase().includes("total sales"));
-    const raw = salesKey ? row[salesKey] : "0";
-    const sales = parseFloat(raw.toString().replace(/[$,]/g, ""));
-
-    dateSales[date] = (dateSales[date] || 0) + (isNaN(sales) ? 0 : sales);
+    if (!isNaN(sales)) {
+      dateSales[date] = (dateSales[date] || 0) + sales;
+    }
   });
 
   const labels = Object.keys(dateSales).sort();
