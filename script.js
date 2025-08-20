@@ -103,6 +103,29 @@ window.onload = function () {
     });
   }
 
+  function updateKPIs(data) {
+    let spend = 0, sales = 0, orders = 0, acosSum = 0, ctrSum = 0, count = 0;
+    data.forEach(row => {
+      const spendVal = parseFloat(row.Spend) || 0;
+      const salesVal = parseFloat(row['7 Day Total Sales']) || 0;
+      const orderVal = parseInt(row['7 Day Total Orders (#)']) || 0;
+      const acosVal = parseFloat(row['Total Advertising Cost of Sales (ACOS)']) || 0;
+      const ctrVal = parseFloat(row['Click-Thru Rate (CTR)']) || 0;
+
+      spend += spendVal;
+      sales += salesVal;
+      orders += orderVal;
+      acosSum += acosVal;
+      ctrSum += ctrVal;
+      count++;
+    });
+    kpiSpend.textContent = `$${spend.toFixed(2)}`;
+    kpiSales.textContent = `$${sales.toFixed(2)}`;
+    kpiOrders.textContent = orders;
+    kpiACOS.textContent = `${(acosSum / count).toFixed(2)}%`;
+    kpiCTR.textContent = `${(ctrSum / count).toFixed(2)}%`;
+  }
+
   function updateDashboard(data) {
     const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
     const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
@@ -175,5 +198,5 @@ window.onload = function () {
     renderPivotTable(filtered);
   }
 
-  // updateKPIs, renderBarChart, renderLineChart, renderPivotTable (same as before)
+  // renderBarChart, renderLineChart, renderPivotTable assumed defined below...
 };
