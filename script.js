@@ -130,22 +130,16 @@ window.onload = function () {
   function updateDashboard(data) {
     const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
     const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
-    const uniquePortfolios = [...new Set(data.map(row => row["Portfolio"]?.trim()))].filter(Boolean).sort();
+    const uniquePortfolios = [...new Set(data.map(row => (row["Portfolio name"] || "Unknown").trim()))].filter(Boolean).sort();
 
     const monthHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-      .concat(uniqueMonths.map(month =>
-        `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
-      )).join('');
+      .concat(uniqueMonths.map(month => `<label><input type="checkbox" value="${month}" checked> ${month}</label>`)).join('');
 
     const storeHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-      .concat(uniqueStores.map(store =>
-        `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
-      )).join('');
+      .concat(uniqueStores.map(store => `<label><input type="checkbox" value="${store}" checked> ${store}</label>`)).join('');
 
     const portfolioHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-      .concat(uniquePortfolios.map(p =>
-        `<label><input type="checkbox" value="${p}" checked> ${p}</label>`
-      )).join('');
+      .concat(uniquePortfolios.map(p => `<label><input type="checkbox" value="${p}" checked> ${p}</label>`)).join('');
 
     monthFilter.innerHTML = monthHTML;
     storeFilter.innerHTML = storeHTML;
@@ -190,14 +184,13 @@ window.onload = function () {
     const filtered = data.filter(row =>
       (showAllMonths || selectedMonths.includes(row.Date?.slice(3))) &&
       (showAllStores || selectedStores.includes(row.Store)) &&
-      (showAllPortfolios || selectedPortfolios.includes(row["Portfolio"]?.trim()))
+      (showAllPortfolios || selectedPortfolios.includes((row["Portfolio name"] || "Unknown").trim()))
     );
 
     updateKPIs(filtered);
     renderBarChart(filtered);
     renderLineChart(filtered);
     renderPivotTable(filtered);
-    renderCampaignTable(filtered);
   }
 
   function renderBarChart(data) {
@@ -220,6 +213,7 @@ window.onload = function () {
       const store = row.Store;
       const spend = parseFloat(row["Spend"] || 0);
       const sales = parseFloat(row["7 Day Total Sales"] || 0);
+      const orders = parseInt(row["7 Day Total Orders (#)"] || 0);
       const acos = parseFloat(row["Total Advertising Cost of Sales (ACOS)"] || 0);
 
       if (!storeMap[store]) {
@@ -243,38 +237,6 @@ window.onload = function () {
         <td>${values.acosCount ? (values.acosTotal / values.acosCount).toFixed(2) + "%" : "0%"}</td>
       `;
       tableBody.appendChild(row);
-    });
-  }
-
-  function renderCampaignTable(data) {
-    const tableBody = document.querySelector("#dataTable tbody");
-    if (!tableBody) return;
-
-    tableBody.innerHTML = "";
-
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row["Date"] || ""}</td>
-        <td>${row["Store"] || ""}</td>
-        <td>${row["Campaign Name"] || ""}</td>
-        <td>${parseFloat(row["Spend"] || 0).toFixed(2)}</td>
-        <td>${parseFloat(row["7 Day Total Sales"] || 0).toFixed(2)}</td>
-        <td>${parseInt(row["7 Day Total Orders (#)"] || 0)}</td>
-        <td>${parseFloat(row["Click-Thru Rate (CTR)"] || 0).toFixed(2)}</td>
-      `;
-      tableBody.appendChild(tr);
-    });
-
-    if ($.fn.DataTable.isDataTable("#dataTable")) {
-      $('#dataTable').DataTable().clear().destroy();
-    }
-
-    $('#dataTable').DataTable({
-      paging: true,
-      searching: true,
-      ordering: true,
-      info: true
     });
   }
 };
