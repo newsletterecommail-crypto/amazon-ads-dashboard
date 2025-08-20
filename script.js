@@ -103,30 +103,41 @@ window.onload = function () {
   }
 
   function updateDashboard(data) {
-    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
-    const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
+  const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
+  const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
+  const uniquePortfolios = [...new Set(data.map(row => row["Portfolio"]))].sort();  // ✅ NEW LINE
 
-    const monthHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-      .concat(uniqueMonths.map(month =>
-        `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
-      )).join('');
+  // Insert "All" at the beginning
+  const monthHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
+    .concat(uniqueMonths.map(month =>
+      `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
+    )).join('');
 
-    const storeHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-      .concat(uniqueStores.map(store =>
-        `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
-      )).join('');
+  const storeHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
+    .concat(uniqueStores.map(store =>
+      `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
+    )).join('');
 
-    monthFilter.innerHTML = monthHTML;
-    storeFilter.innerHTML = storeHTML;
+  const portfolioHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
+    .concat(uniquePortfolios.map(p =>
+      `<label><input type="checkbox" value="${p}" checked> ${p}</label>`
+    )).join(''); // ✅ NEW
 
-    monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-    storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+  monthFilter.innerHTML = monthHTML;
+  storeFilter.innerHTML = storeHTML;
+  document.getElementById('portfolioFilter').innerHTML = portfolioHTML; // ✅ NEW
 
-    enableAllCheckboxToggle('monthFilter', data);
-    enableAllCheckboxToggle('storeFilter', data);
+  monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+  storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+  document.getElementById('portfolioFilter').querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data))); // ✅ NEW
 
-    applyFilters(data);
-  }
+  enableAllCheckboxToggle('monthFilter', data);
+  enableAllCheckboxToggle('storeFilter', data);
+  enableAllCheckboxToggle('portfolioFilter', data); // ✅ NEW
+
+  applyFilters(data);
+}
+
 
   function enableAllCheckboxToggle(groupId, data) {
     const container = document.getElementById(groupId);
