@@ -104,27 +104,28 @@ window.onload = function () {
   }
 
   function updateKPIs(data) {
-    let spend = 0, sales = 0, orders = 0, acosSum = 0, ctrSum = 0, count = 0;
-    data.forEach(row => {
-      const spendVal = parseFloat(row.Spend) || 0;
-      const salesVal = parseFloat(row['7 Day Total Sales']) || 0;
-      const orderVal = parseInt(row['7 Day Total Orders (#)']) || 0;
-      const acosVal = parseFloat(row['Total Advertising Cost of Sales (ACOS)']) || 0;
-      const ctrVal = parseFloat(row['Click-Thru Rate (CTR)']) || 0;
+  let totalSpend = 0, totalSales = 0, totalOrders = 0, totalACOS = 0, totalCTR = 0, count = 0;
 
-      spend += spendVal;
-      sales += salesVal;
-      orders += orderVal;
-      acosSum += acosVal;
-      ctrSum += ctrVal;
-      count++;
-    });
-    kpiSpend.textContent = `$${spend.toFixed(2)}`;
-    kpiSales.textContent = `$${sales.toFixed(2)}`;
-    kpiOrders.textContent = orders;
-    kpiACOS.textContent = `${(acosSum / count).toFixed(2)}%`;
-    kpiCTR.textContent = `${(ctrSum / count).toFixed(2)}%`;
-  }
+  data.forEach(row => {
+    const spend = parseFloat(row["Spend"] || 0);
+    const sales = parseFloat(row["7 Day Total Sales"] || 0);
+    const orders = parseInt(row["7 Day Total Orders (#)"] || 0);
+    const acos = parseFloat(row["Total Advertising Cost of Sales (ACOS)"] || 0);
+    const ctr = parseFloat(row["Click-Thru Rate (CTR)"] || 0);
+
+    if (!isNaN(spend)) totalSpend += spend;
+    if (!isNaN(sales)) totalSales += sales;
+    if (!isNaN(orders)) totalOrders += orders;
+    if (!isNaN(acos)) { totalACOS += acos; count++; }
+    if (!isNaN(ctr)) totalCTR += ctr;
+  });
+
+  kpiSpend.textContent = `$${totalSpend.toFixed(2)}`;
+  kpiSales.textContent = `$${totalSales.toFixed(2)}`;
+  kpiOrders.textContent = totalOrders;
+  kpiACOS.textContent = count ? `${(totalACOS / count).toFixed(2)}%` : "0%";
+  kpiCTR.textContent = `${(totalCTR / data.length).toFixed(2)}%`;
+}
 
   function updateDashboard(data) {
     const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
