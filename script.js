@@ -1,7 +1,3 @@
-// ==========================
-// Main Dashboard Script
-// ==========================
-
 window.onload = () => {
   const CSV1 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
   const CSV2 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part2.csv";
@@ -40,30 +36,37 @@ window.onload = () => {
       }
     });
 
-    const monthSelect = document.getElementById("monthFilter");
-    const storeSelect = document.getElementById("storeFilter");
+    const monthSelect = document.getElementById("monthSelect");
+    const storeSelect = document.getElementById("storeSelect");
 
-    monthSet.forEach(month => {
-      const option = new Option(month, month, false, true);
+    Array.from(monthSet).sort().reverse().forEach(month => {
+      const option = document.createElement("option");
+      option.value = month;
+      option.text = month;
       monthSelect.appendChild(option);
     });
-    storeSet.forEach(store => {
-      const option = new Option(store, store, false, true);
+
+    const allOption = document.createElement("option");
+    allOption.value = "All";
+    allOption.text = "All";
+    storeSelect.appendChild(allOption);
+
+    Array.from(storeSet).sort().forEach(store => {
+      const option = document.createElement("option");
+      option.value = store;
+      option.text = store;
       storeSelect.appendChild(option);
     });
 
-    const monthChoices = new Choices(monthSelect, { removeItemButton: true });
-    const storeChoices = new Choices(storeSelect, { removeItemButton: true });
-
     function applyFilters() {
-      const selectedMonths = monthChoices.getValue(true);
-      const selectedStores = storeChoices.getValue(true);
+      const selectedMonth = monthSelect.value;
+      const selectedStore = storeSelect.value;
 
       const filtered = data.filter(row => {
         const rowDate = new Date(row["Date"]);
         const rowMonth = ("0" + (rowDate.getMonth() + 1)).slice(-2) + "-" + rowDate.getFullYear();
-        const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(rowMonth);
-        const matchStore = selectedStores.length === 0 || selectedStores.includes(row["Store"]);
+        const matchMonth = selectedMonth === "" || rowMonth === selectedMonth;
+        const matchStore = selectedStore === "All" || row["Store"] === selectedStore;
         return matchMonth && matchStore;
       });
 
@@ -83,15 +86,13 @@ window.onload = () => {
 
     data.forEach(row => {
       totalSpend += parseFloat(row["Spend"] || 0);
-      totalSales += parseFloat((row["7 Day Total Sales"] || row["7 Day Total Sales "] || "0").toString().replace(/[$,]/g, ''));
-      totalOrders += parseInt(row["7 Day Total Orders (#)"] || 0);
+      totalSales += parseFloat(row["7 Day Total Sales"] || 0);
+      totalOrders += parseInt(row["Total Orders"] || 0);
     });
 
-    document.getElementById("kpiSpend").textContent = `$${totalSpend.toFixed(2)}`;
-    document.getElementById("kpiSales").textContent = `$${totalSales.toFixed(2)}`;
-    document.getElementById("kpiOrders").textContent = totalOrders;
-    document.getElementById("kpiACOS").textContent = totalSales ? `${((totalSpend / totalSales) * 100).toFixed(2)}%` : "0%";
-    document.getElementById("kpiCTR").textContent = "-";
+    document.getElementById("spendValue").textContent = `$${totalSpend.toFixed(2)}`;
+    document.getElementById("salesValue").textContent = `$${totalSales.toFixed(2)}`;
+    document.getElementById("ordersValue").textContent = totalOrders.toLocaleString();
   }
 
   function updateTable(data) {
@@ -109,94 +110,36 @@ window.onload = () => {
         <td>${row["Store"]}</td>
         <td>${row["Campaign Name"]}</td>
         <td>${row["Spend"]}</td>
-        <td>${row["7 Day Total Sales"] || row["7 Day Total Sales "]}</td>
-        <td>${row["7 Day Total Orders (#)"]}</td>
-        <td>${row["Click-Thru Rate (CTR)"] || "-"}</td>
+        <td>${row["7 Day Total Sales"]}</td>
+        <td>${row["Total Orders"]}</td>
+        <td>${row["ACOS"]}</td>
+        <td>${row["CTR"]}</td>
       `;
       tableBody.appendChild(tr);
     });
 
-    $('#dataTable').DataTable({ scrollX: true });
+    $('#dataTable').DataTable({
+      paging: true,
+      searching: true,
+      ordering: true,
+      scrollX: true,
+      footerCallback: function (row, data, start, end, display) {
+        const api = this.api();
+        const intVal = i => typeof i === 'string' ? parseFloat(i.replace(/[\$,]/g, '')) : typeof i === 'number' ? i : 0;
+
+        const colIndices = [3, 4, 5]; // Spend, Sales, Orders
+        colIndices.forEach(col => {
+          const total = api
+            .column(col, { search: 'applied' })
+            .data()
+            .reduce((a, b) => intVal(a) + intVal(b), 0);
+          $(api.column(col).footer()).html(col === 5 ? total.toLocaleString() : `$${total.toFixed(2)}`);
+        });
+      }
+    });
   }
 
   function updateCharts(data) {
-    const ctx1 = document.getElementById("barChart").getContext("2d");
-    const ctx2 = document.getElementById("lineChart1").getContext("2d");
-
-    if (window.barChartInstance) window.barChartInstance.destroy();
-    if (window.lineChartInstance) window.lineChartInstance.destroy();
-
-    const storeSpend = {};
-    const dateSales = {};
-
-    data.forEach(row => {
-      const store = row["Store"];
-      const spend = parseFloat(row["Spend"] || 0);
-      storeSpend[store] = (storeSpend[store] || 0) + spend;
-
-      const date = row["Date"];
-      const rawSales = row["7 Day Total Sales"] || row["7 Day Total Sales "] || "0";
-      const sales = parseFloat(rawSales.toString().replace(/[$,]/g, ""));
-      if (!isNaN(sales)) {
-        dateSales[date] = (dateSales[date] || 0) + sales;
-      }
-    });
-
-    window.barChartInstance = new Chart(ctx1, {
-      type: "bar",
-      data: {
-        labels: Object.keys(storeSpend),
-        datasets: [{
-          label: "Spend by Store",
-          data: Object.values(storeSpend),
-          backgroundColor: "rgba(54, 162, 235, 0.6)",
-          borderColor: "rgba(54, 162, 235, 1)",
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Total Spend by Store'
-          }
-        }
-      }
-    });
-
-    const sortedDates = Object.keys(dateSales).sort();
-    const sortedSales = sortedDates.map(d => dateSales[d]);
-
-    window.lineChartInstance = new Chart(ctx2, {
-      type: "line",
-      data: {
-        labels: sortedDates,
-        datasets: [{
-          label: "Sales Over Time",
-          data: sortedSales,
-          fill: false,
-          borderColor: "rgba(75, 192, 192, 1)",
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Total Sales Over Time'
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              autoSkip: true,
-              maxTicksLimit: 15
-            }
-          }
-        }
-      }
-    });
+    // Placeholder for chart logic
   }
 };
