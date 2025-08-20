@@ -98,9 +98,16 @@ window.onload = () => {
     const storeSet = new Set();
 
     data.forEach(row => {
-      const dt = new Date(row["Date"]);
-      if (!isNaN(dt)) {
-        const m = ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + dt.getFullYear();
+     let rowMonth = "";
+const dateParts = row["Date"]?.split("-");
+if (dateParts.length === 3) {
+  // Format: DD-MM-YYYY → extract MM-YYYY
+  const [day, month, year] = dateParts;
+  rowMonth = `${month}-${year}`;
+} else {
+  console.warn("Invalid Date:", row["Date"]);
+}
+
         monthSet.add(m);
       }
       if (row.Store) storeSet.add(row.Store);
