@@ -117,23 +117,32 @@ window.onload = () => {
     applyFilters(data);
   }
 
-  function applyFilters(data) {
-    const selectedMonth = monthFilter.value;
-    const selectedStore = storeFilter.value;
+ function applyFilters(data) {
+  const selectedMonth = monthFilter.value;
+  const selectedStore = storeFilter.value;
 
-    const filtered = data.filter(row => {
-      const dt = new Date(row["Date"]);
-      const rowMonth = !isNaN(dt) ? ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + dt.getFullYear() : "";
-      const matchMonth = selectedMonth === "All" || rowMonth === selectedMonth;
-      const matchStore = selectedStore === "All" || row.Store === selectedStore;
-      return matchMonth && matchStore;
-    });
+  const filtered = data.filter(row => {
+    const dt = new Date(row["Date"]);
+    const rowMonth = !isNaN(dt) ? ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + dt.getFullYear() : "";
 
-    updateKPIs(filtered);
-    renderBarChart(filtered);
-    renderLineChart(filtered);
-    renderPivotTable(filtered);
-  }
+    // Log debugging info
+    if (isNaN(dt)) console.warn("Invalid Date:", row["Date"]);
+
+    const matchMonth = selectedMonth === "All" || rowMonth === selectedMonth;
+    const matchStore = selectedStore === "All" || row.Store === selectedStore;
+
+    return matchMonth && matchStore;
+  });
+
+  console.log("📅 Selected Month:", selectedMonth);
+  console.log("🏪 Selected Store:", selectedStore);
+  console.log("✅ Filtered rows:", filtered.length);
+
+  updateKPIs(filtered);
+  renderBarChart(filtered);
+  renderLineChart(filtered);
+  renderPivotTable(filtered);
+}
 
   function updateKPIs(data) {
     let spend = 0, sales = 0, orders = 0, acosSum = 0, ctrSum = 0, count = 0;
