@@ -106,13 +106,17 @@ window.onload = function () {
     const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
     const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
 
-    monthFilter.innerHTML = uniqueMonths.map(month =>
-      `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
-    ).join('') + `<label><input type="checkbox" value="All"> All</label>`;
+    monthFilter.innerHTML = 
+  `<label><input type="checkbox" value="All" checked> All</label>` +
+  uniqueMonths.map(month =>
+    `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
+  ).join('');
 
-    storeFilter.innerHTML = uniqueStores.map(store =>
-      `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
-    ).join('') + `<label><input type="checkbox" value="All"> All</label>`;
+storeFilter.innerHTML = 
+  `<label><input type="checkbox" value="All" checked> All</label>` +
+  uniqueStores.map(store =>
+    `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
+  ).join('');
 
     monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
     storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
