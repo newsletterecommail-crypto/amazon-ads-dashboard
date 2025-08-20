@@ -36,8 +36,8 @@ window.onload = () => {
       }
     });
 
-    const monthSelect = document.getElementById("monthSelect");
-    const storeSelect = document.getElementById("storeSelect");
+    const monthSelect = document.getElementById("monthFilter");
+    const storeSelect = document.getElementById("storeFilter");
 
     Array.from(monthSet).sort().reverse().forEach(month => {
       const option = document.createElement("option");
@@ -46,11 +46,6 @@ window.onload = () => {
       monthSelect.appendChild(option);
     });
 
-    const allOption = document.createElement("option");
-    allOption.value = "All";
-    allOption.text = "All";
-    storeSelect.appendChild(allOption);
-
     Array.from(storeSet).sort().forEach(store => {
       const option = document.createElement("option");
       option.value = store;
@@ -58,41 +53,65 @@ window.onload = () => {
       storeSelect.appendChild(option);
     });
 
-    function applyFilters() {
-      const selectedMonth = monthSelect.value;
-      const selectedStore = storeSelect.value;
+    // Initialize Choices.js
+    const monthChoices = new Choices(monthSelect, { removeItemButton: true });
+    const storeChoices = new Choices(storeSelect, { removeItemButton: true });
 
-      const filtered = data.filter(row => {
-        const rowDate = new Date(row["Date"]);
-        const rowMonth = ("0" + (rowDate.getMonth() + 1)).slice(-2) + "-" + rowDate.getFullYear();
-        const matchMonth = selectedMonth === "" || rowMonth === selectedMonth;
-        const matchStore = selectedStore === "All" || row["Store"] === selectedStore;
-        return matchMonth && matchStore;
-      });
+    // Apply filters when selections change
+    monthSelect.addEventListener("change", () => applyFilters(data));
+    storeSelect.addEventListener("change", () => applyFilters(data));
 
-      updateKPIs(filtered);
-      updateTable(filtered);
-      updateCharts(filtered);
-    }
+    applyFilters(data);
+  }
 
-    monthSelect.addEventListener("change", applyFilters);
-    storeSelect.addEventListener("change", applyFilters);
+  function applyFilters(data) {
+    const selectedMonths = getSelectValues(document.getElementById("monthFilter"));
+    const selectedStores = getSelectValues(document.getElementById("storeFilter"));
 
-    applyFilters();
+    const filtered = data.filter(row => {
+      const rowDate = new Date(row["Date"]);
+      const rowMonth = ("0" + (rowDate.getMonth() + 1)).slice(-2) + "-" + rowDate.getFullYear();
+      const matchMonth = selectedMonths.length === 0 || selectedMonths.includes(rowMonth);
+      const matchStore = selectedStores.length === 0 || selectedStores.includes(row["Store"]);
+      return matchMonth && matchStore;
+    });
+
+    updateKPIs(filtered);
+    updateTable(filtered);
+    updateCharts(filtered);
+    updatePivotTable(filtered);
+  }
+
+  function getSelectValues(selectElement) {
+    return Array.from(selectElement.selectedOptions).map(opt => opt.value);
   }
 
   function updateKPIs(data) {
-    let totalSpend = 0, totalSales = 0, totalOrders = 0;
+    let totalSpend = 0, totalSales = 0, totalOrders = 0, totalACOS = 0, totalCTR = 0, validACOS = 0, validCTR = 0;
 
     data.forEach(row => {
       totalSpend += parseFloat(row["Spend"] || 0);
       totalSales += parseFloat(row["7 Day Total Sales"] || 0);
       totalOrders += parseInt(row["Total Orders"] || 0);
+
+      const acos = parseFloat(row["ACOS"]);
+      if (!isNaN(acos)) {
+        totalACOS += acos;
+        validACOS++;
+      }
+
+      const ctr = parseFloat(row["CTR"]);
+      if (!isNaN(ctr)) {
+        totalCTR += ctr;
+        validCTR++;
+      }
     });
 
-    document.getElementById("spendValue").textContent = `$${totalSpend.toFixed(2)}`;
-    document.getElementById("salesValue").textContent = `$${totalSales.toFixed(2)}`;
-    document.getElementById("ordersValue").textContent = totalOrders.toLocaleString();
+    document.getElementById("kpiSpend").textContent = `$${totalSpend.toFixed(2)}`;
+    document.getElementById("kpiSales").textContent = `$${totalSales.toFixed(2)}`;
+    document.getElementById("kpiOrders").textContent = totalOrders.toLocaleString();
+    document.getElementById("kpiACOS").textContent = validACOS ? `${(totalACOS / validACOS).toFixed(2)}%` : "0%";
+    document.getElementById("kpiCTR").textContent = validCTR ? `${(totalCTR / validCTR).toFixed(2)}%` : "0%";
   }
 
   function updateTable(data) {
@@ -112,7 +131,6 @@ window.onload = () => {
         <td>${row["Spend"]}</td>
         <td>${row["7 Day Total Sales"]}</td>
         <td>${row["Total Orders"]}</td>
-        <td>${row["ACOS"]}</td>
         <td>${row["CTR"]}</td>
       `;
       tableBody.appendChild(tr);
@@ -122,24 +140,51 @@ window.onload = () => {
       paging: true,
       searching: true,
       ordering: true,
-      scrollX: true,
-      footerCallback: function (row, data, start, end, display) {
-        const api = this.api();
-        const intVal = i => typeof i === 'string' ? parseFloat(i.replace(/[\$,]/g, '')) : typeof i === 'number' ? i : 0;
+      scrollX: true
+    });
+  }
 
-        const colIndices = [3, 4, 5]; // Spend, Sales, Orders
-        colIndices.forEach(col => {
-          const total = api
-            .column(col, { search: 'applied' })
-            .data()
-            .reduce((a, b) => intVal(a) + intVal(b), 0);
-          $(api.column(col).footer()).html(col === 5 ? total.toLocaleString() : `$${total.toFixed(2)}`);
-        });
+  function updatePivotTable(data) {
+    const pivotTableBody = document.querySelector("#pivotTable tbody");
+    pivotTableBody.innerHTML = "";
+
+    const storeMap = {};
+
+    data.forEach(row => {
+      const store = row["Store"];
+      const spend = parseFloat(row["Spend"] || 0);
+      const sales = parseFloat(row["7 Day Total Sales"] || 0);
+      const acos = parseFloat(row["ACOS"] || 0);
+
+      if (!storeMap[store]) {
+        storeMap[store] = { spend: 0, sales: 0, acosTotal: 0, acosCount: 0 };
       }
+
+      storeMap[store].spend += spend;
+      storeMap[store].sales += sales;
+
+      if (!isNaN(acos)) {
+        storeMap[store].acosTotal += acos;
+        storeMap[store].acosCount++;
+      }
+    });
+
+    Object.keys(storeMap).sort().forEach(store => {
+      const entry = storeMap[store];
+      const avgAcos = entry.acosCount ? (entry.acosTotal / entry.acosCount).toFixed(2) : "0.00";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${store}</td>
+        <td>$${entry.spend.toFixed(2)}</td>
+        <td>$${entry.sales.toFixed(2)}</td>
+        <td>${avgAcos}%</td>
+      `;
+      pivotTableBody.appendChild(tr);
     });
   }
 
   function updateCharts(data) {
-    // Placeholder for chart logic
+    // Placeholder – Add chart logic as needed
   }
 };
