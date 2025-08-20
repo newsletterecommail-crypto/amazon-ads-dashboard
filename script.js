@@ -106,39 +106,35 @@ window.onload = function () {
     const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))];
     const uniqueStores = [...new Set(data.map(row => row.Store))];
 
-    monthFilter.innerHTML = `<option value="All">All</option>` + 
-      uniqueMonths.map(m => `<option value="${m}">${m}</option>`).join('');
-    storeFilter.innerHTML = `<option value="All">All</option>` + 
-      uniqueStores.map(s => `<option value="${s}">${s}</option>`).join('');
+    monthFilter.innerHTML = uniqueMonths.map(m => `
+      <label><input type="checkbox" value="${m}" checked /> ${m}</label>
+    `).join('');
 
-    monthFilter.onchange = () => applyFilters(data);
-    storeFilter.onchange = () => applyFilters(data);
+    storeFilter.innerHTML = uniqueStores.map(s => `
+      <label><input type="checkbox" value="${s}" checked /> ${s}</label>
+    `).join('');
+
+    monthFilter.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+    storeFilter.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
 
     applyFilters(data);
   }
 
   function applyFilters(data) {
-  const selectedMonths = Array.from(monthFilter.selectedOptions).map(opt => opt.value);
-  const selectedStores = Array.from(storeFilter.selectedOptions).map(opt => opt.value);
+    const selectedMonths = Array.from(monthFilter.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+    const selectedStores = Array.from(storeFilter.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
 
-  let filtered = data;
-
-  if (!selectedMonths.includes("All")) {
-    filtered = filtered.filter(row => {
+    let filtered = data.filter(row => {
       const month = row.Date?.slice(3);
-      return selectedMonths.includes(month);
+      return selectedMonths.includes(month) && selectedStores.includes(row.Store);
     });
+
+    updateKPIs(filtered);
+    renderBarChart(filtered);
+    renderLineChart(filtered);
+    populateTable(filtered);
   }
 
-  if (!selectedStores.includes("All")) {
-    filtered = filtered.filter(row => selectedStores.includes(row.Store));
-  }
-
-  updateKPIs(filtered);
-  renderBarChart(filtered);
-  renderLineChart(filtered);
-  populateTable(filtered);
-}
   function updateKPIs(data) {
     const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
 
