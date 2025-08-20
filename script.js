@@ -69,8 +69,13 @@ window.onload = function () {
   }
 
   function populateFilters() {
-    const months = [...new Set(allData.map(d => d["Month"]))].sort();
-    const stores = [...new Set(allData.map(d => d["Store"]))].sort();
+    const months = [...new Set(allData.map(d => {
+      // extract MM-YYYY or full "Month Year" from Date
+      const parts = d.Date?.split('-');
+      return parts?.length === 3 ? parts[1] + '-' + parts[2] : '';
+    }))].filter(m => m).sort();
+
+    const stores = [...new Set(allData.map(d => d.Store))].sort();
 
     addCheckboxes(monthFilter, months);
     addCheckboxes(storeFilter, stores);
@@ -84,9 +89,7 @@ window.onload = function () {
     container.innerHTML = '';
     container.innerHTML += `<label><input type="checkbox" value="All" checked> All</label><br>`;
     items.forEach(item => {
-      if (item && item.trim() !== "") {
-        container.innerHTML += `<label><input type="checkbox" value="${item}"> ${item}</label><br>`;
-      }
+      container.innerHTML += `<label><input type="checkbox" value="${item}"> ${item}</label><br>`;
     });
   }
 
@@ -94,9 +97,10 @@ window.onload = function () {
     const selectedMonths = getCheckedValues(monthFilter);
     const selectedStores = getCheckedValues(storeFilter);
 
-    let filtered = allData.filter(row => {
-      const inMonth = selectedMonths.includes("All") || selectedMonths.includes(row["Month"]);
-      const inStore = selectedStores.includes("All") || selectedStores.includes(row["Store"]);
+    const filtered = allData.filter(row => {
+      const month = row.Date?.split('-').slice(1).join('-'); // "MM-YYYY"
+      const inMonth = selectedMonths.includes("All") || selectedMonths.includes(month);
+      const inStore = selectedStores.includes("All") || selectedStores.includes(row.Store);
       return inMonth && inStore;
     });
 
@@ -112,10 +116,10 @@ window.onload = function () {
 
   function updateKPIs(data) {
     const spend = sum(data, "Spend");
-    const sales = sum(data, "7 Day Total Sales");
-    const orders = sum(data, "Orders");
+    const sales = sum(data, "7 Day Total Sales ");
+    const orders = sum(data, "7 Day Total Orders (#)");
     const acos = spend > 0 ? (spend / sales) * 100 : 0;
-    const ctr = avg(data, "CTR");
+    const ctr = avg(data, "Click-Thru Rate (CTR)");
 
     document.getElementById("kpiSpend").textContent = `$${spend.toFixed(2)}`;
     document.getElementById("kpiSales").textContent = `$${sales.toFixed(2)}`;
@@ -129,9 +133,8 @@ window.onload = function () {
   }
 
   function avg(data, key) {
-    const valid = data.filter(row => row[key] !== "");
-    const total = valid.reduce((sum, row) => sum + parseFloat(row[key]), 0);
-    return valid.length ? total / valid.length : 0;
+    const vals = data.map(r => parseFloat(r[key] || 0)).filter(v => !isNaN(v));
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
   }
 
   let barChart, lineChart1, lineChart2;
@@ -140,14 +143,14 @@ window.onload = function () {
     const grouped = {};
     data.forEach(row => {
       const store = row["Store"];
-      if (!grouped[store]) grouped[store] = { spend: 0, sales: 0 };
+      grouped[store] = grouped[store] || { spend: 0, sales: 0 };
       grouped[store].spend += parseFloat(row["Spend"] || 0);
-      grouped[store].sales += parseFloat(row["7 Day Total Sales"] || 0);
+      grouped[store].sales += parseFloat(row["7 Day Total Sales "] || 0);
     });
 
     const labels = Object.keys(grouped);
-    const spendData = labels.map(label => grouped[label].spend);
-    const salesData = labels.map(label => grouped[label].sales);
+    const spendData = labels.map(l => grouped[l].spend);
+    const salesData = labels.map(l => grouped[l].sales);
 
     if (barChart) barChart.destroy();
     if (lineChart1) lineChart1.destroy();
@@ -156,7 +159,7 @@ window.onload = function () {
     barChart = new Chart(document.getElementById('barChart'), {
       type: 'bar',
       data: {
-        labels: labels,
+        labels,
         datasets: [
           { label: "Spend", data: spendData, backgroundColor: "rgba(75, 192, 192, 0.6)" },
           { label: "Sales", data: salesData, backgroundColor: "rgba(153, 102, 255, 0.6)" }
@@ -167,19 +170,13 @@ window.onload = function () {
 
     lineChart1 = new Chart(document.getElementById('lineChart1'), {
       type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{ label: "Spend", data: spendData, fill: false, borderColor: "green" }]
-      },
+      data: { labels, datasets: [{ label: "Spend", data: spendData, fill: false, borderColor: "green" }] },
       options: { responsive: true }
     });
 
     lineChart2 = new Chart(document.getElementById('lineChart2'), {
       type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{ label: "Sales", data: salesData, fill: false, borderColor: "blue" }]
-      },
+      data: { labels, datasets: [{ label: "Sales", data: salesData, fill: false, borderColor: "blue" }] },
       options: { responsive: true }
     });
   }
@@ -187,47 +184,43 @@ window.onload = function () {
   function updateTable(data) {
     const table = $('#dataTable').DataTable();
     table.clear();
-
     data.forEach(row => {
       table.row.add([
         row["Date"] || '',
         row["Store"] || '',
         row["Campaign Name"] || '',
         `$${parseFloat(row["Spend"] || 0).toFixed(2)}`,
-        `$${parseFloat(row["7 Day Total Sales"] || 0).toFixed(2)}`,
-        row["Orders"] || 0,
-        `${parseFloat(row["CTR"] || 0).toFixed(2)}%`
+        `$${parseFloat(row["7 Day Total Sales "] || 0).toFixed(2)}`,
+        row["7 Day Total Orders (#)"] || 0,
+        `${parseFloat(row["Click-Thru Rate (CTR)"] || 0).toFixed(2)}%`
       ]);
     });
-
     table.draw();
   }
 
-  $(document).ready(function () {
+  $(document).ready(() => {
     $('#dataTable').DataTable();
   });
 
   function updatePivotTable(data) {
     const pivot = {};
-
     data.forEach(row => {
       const store = row["Store"];
-      if (!pivot[store]) pivot[store] = { spend: 0, sales: 0 };
+      pivot[store] = pivot[store] || { spend: 0, sales: 0 };
       pivot[store].spend += parseFloat(row["Spend"] || 0);
-      pivot[store].sales += parseFloat(row["7 Day Total Sales"] || 0);
+      pivot[store].sales += parseFloat(row["7 Day Total Sales "] || 0);
     });
 
     const tbody = document.querySelector('#pivotTable tbody');
     tbody.innerHTML = '';
-    Object.entries(pivot).forEach(([store, values]) => {
-      const acos = values.sales > 0 ? (values.spend / values.sales) * 100 : 0;
-      const row = `<tr>
+    Object.entries(pivot).forEach(([store, v]) => {
+      const acos = v.sales > 0 ? (v.spend / v.sales) * 100 : 0;
+      tbody.innerHTML += `<tr>
         <td>${store}</td>
-        <td>$${values.spend.toFixed(2)}</td>
-        <td>$${values.sales.toFixed(2)}</td>
+        <td>$${v.spend.toFixed(2)}</td>
+        <td>$${v.sales.toFixed(2)}</td>
         <td>${acos.toFixed(2)}%</td>
       </tr>`;
-      tbody.innerHTML += row;
     });
   }
 };
