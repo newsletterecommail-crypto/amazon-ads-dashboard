@@ -12,11 +12,7 @@ window.onload = function () {
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  if (window['chartjs-plugin-zoom']) {
-    Chart.register(window['chartjs-plugin-zoom']);
-  } else {
-    console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
-  }
+  if (window['chartjs-plugin-zoom']) Chart.register(window['chartjs-plugin-zoom']);
 
   const loginContainer = document.getElementById('loginContainer');
   const dashboardContainer = document.getElementById('dashboardContainer');
@@ -39,23 +35,21 @@ window.onload = function () {
 
   let allData = [];
 
-  signupButton.addEventListener('click', (e) => {
+  signupButton.addEventListener('click', e => {
     e.preventDefault();
     auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
       .then(() => authMessage.textContent = "Signup successful!")
-      .catch((error) => authMessage.textContent = error.message);
+      .catch(err => authMessage.textContent = err.message);
   });
 
-  loginButton.addEventListener('click', (e) => {
+  loginButton.addEventListener('click', e => {
     e.preventDefault();
     auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
       .then(() => authMessage.textContent = "")
-      .catch((error) => authMessage.textContent = error.message);
+      .catch(err => authMessage.textContent = err.message);
   });
 
-  logoutButton.addEventListener('click', () => {
-    auth.signOut();
-  });
+  logoutButton.addEventListener('click', () => auth.signOut());
 
   auth.onAuthStateChanged(user => {
     if (user) {
@@ -74,169 +68,134 @@ window.onload = function () {
 
     let merged = [];
 
-    Papa.parse(CSV1, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      complete: function (results1) {
-        merged = results1.data;
-
-        Papa.parse(CSV2, {
-          download: true,
-          header: true,
-          skipEmptyLines: true,
-          complete: function (results2) {
-            merged = merged.concat(results2.data);
-            allData = merged;
-            console.log("✅ Merged CSV Data Sample:", allData[0]);
-            console.log("✅ Available Keys:", Object.keys(allData[0]));
-            updateDashboard(allData);
-          },
-          error: function (err2) {
-            console.error("❌ Error loading CSV 2:", err2);
-          }
-        });
-      },
-      error: function (err1) {
-        console.error("❌ Error loading CSV 1:", err1);
-      }
-    });
+    Papa.parse(CSV1, { download: true, header: true, skipEmptyLines: true, complete: r1 => {
+      merged = r1.data;
+      Papa.parse(CSV2, { download: true, header: true, skipEmptyLines: true, complete: r2 => {
+          merged = merged.concat(r2.data);
+          allData = merged;
+          console.log("Headers:", Object.keys(allData[0]));
+          updateDashboard(allData);
+        }
+      });
+    }});
   }
 
   function updateKPIs(data) {
-    let totalSpend = 0, totalSales = 0, totalOrders = 0, totalACOS = 0, totalCTR = 0, count = 0;
-
-    data.forEach(row => {
-      const spend = parseFloat(row["Spend"] || 0);
-      const sales = parseFloat(row["7 Day Total Sales"] || 0);
-      const orders = parseInt(row["7 Day Total Orders (#)"] || 0);
-      const acos = parseFloat(row["Total Advertising Cost of Sales (ACOS)"] || 0);
-      const ctr = parseFloat(row["Click-Thru Rate (CTR)"] || 0);
-
-      if (!isNaN(spend)) totalSpend += spend;
-      if (!isNaN(sales)) totalSales += sales;
-      if (!isNaN(orders)) totalOrders += orders;
-      if (!isNaN(acos)) { totalACOS += acos; count++; }
-      if (!isNaN(ctr)) totalCTR += ctr;
+    let spend=0,sales=0,orders=0,acosSum=0,ctrSum=0,count=0;
+    data.forEach(r => {
+      spend += parseFloat(r.Spend) || 0;
+      sales += parseFloat(r["7 Day Total Sales"]) || 0;
+      orders += parseInt(r["7 Day Total Orders (#)"]) || 0;
+      const a = parseFloat(r["Total Advertising Cost of Sales (ACOS)"]) || 0;
+      const c = parseFloat(r["Click-Thru Rate (CTR)"]) || 0;
+      if (!isNaN(a)) { acosSum+=a; count++; }
+      ctrSum += isNaN(c)?0:c;
     });
-
-    kpiSpend.textContent = `$${totalSpend.toFixed(2)}`;
-    kpiSales.textContent = `$${totalSales.toFixed(2)}`;
-    kpiOrders.textContent = totalOrders;
-    kpiACOS.textContent = count ? `${(totalACOS / count).toFixed(2)}%` : "0%";
-    kpiCTR.textContent = `${(totalCTR / data.length).toFixed(2)}%`;
+    kpiSpend.textContent = `$${spend.toFixed(2)}`;
+    kpiSales.textContent = `$${sales.toFixed(2)}`;
+    kpiOrders.textContent = orders;
+    kpiACOS.textContent = count ? `${(acosSum/count).toFixed(2)}%` : '0%';
+    kpiCTR.textContent = `${(ctrSum/data.length).toFixed(2)}%`;
   }
 
   function updateDashboard(data) {
-    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
-    const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
-    const uniquePortfolios = [...new Set(data.map(row => (row["Portfolio name"] || "Unknown").trim()))].filter(Boolean).sort();
+    const months = [...new Set(data.map(r => r.Date?.slice(3)))].sort();
+    const stores = [...new Set(data.map(r => r.Store))].sort();
+    const portfolios = [...new Set(data.map(r => (r["Portfolio name"]||"Unknown").trim()))]
+                        .filter(v=>v).sort();
 
-    const monthHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-      .concat(uniqueMonths.map(month => `<label><input type="checkbox" value="${month}" checked> ${month}</label>`)).join('');
+    monthFilter.innerHTML = `<label><input type="checkbox" value="All" checked> All</label>` +
+      months.map(m=>`<label><input type="checkbox" value="${m}" checked> ${m}</label>`).join('');
+    storeFilter.innerHTML = `<label><input type="checkbox" value="All" checked> All</label>` +
+      stores.map(s=>`<label><input type="checkbox" value="${s}" checked> ${s}</label>`).join('');
+    portfolioFilter.innerHTML = `<label><input type="checkbox" value="All" checked> All</label>` +
+      portfolios.map(p=>`<label><input type="checkbox" value="${p}" checked> ${p}</label>`).join('');
 
-    const storeHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-      .concat(uniqueStores.map(store => `<label><input type="checkbox" value="${store}" checked> ${store}</label>`)).join('');
-
-    const portfolioHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-      .concat(uniquePortfolios.map(p => `<label><input type="checkbox" value="${p}" checked> ${p}</label>`)).join('');
-
-    monthFilter.innerHTML = monthHTML;
-    storeFilter.innerHTML = storeHTML;
-    portfolioFilter.innerHTML = portfolioHTML;
-
-    monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-    storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-    portfolioFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-
-    enableAllCheckboxToggle('monthFilter', data);
-    enableAllCheckboxToggle('storeFilter', data);
-    enableAllCheckboxToggle('portfolioFilter', data);
-
+    [monthFilter,storeFilter,portfolioFilter].forEach(el => el.querySelectorAll('input')
+      .forEach(cb => cb.addEventListener('change', ()=>applyFilters(data))));
+    ['monthFilter','storeFilter','portfolioFilter'].forEach(id => enableAllToggle(id,data));
     applyFilters(data);
   }
 
-  function enableAllCheckboxToggle(groupId, data) {
-    const container = document.getElementById(groupId);
-    container.addEventListener('change', function (e) {
-      if (e.target.value === "All") {
-        const isChecked = e.target.checked;
-        container.querySelectorAll('input[type=checkbox]').forEach(cb => {
-          cb.checked = isChecked;
-        });
+  function enableAllToggle(id,data) {
+    document.getElementById(id).addEventListener('change',e=>{
+      if(e.target.value==="All") {
+        document.getElementById(id).querySelectorAll('input')
+          .forEach(cb=>cb.checked=e.target.checked);
       } else {
-        const allBox = container.querySelector('input[value="All"]');
-        if (allBox) allBox.checked = false;
+        document.getElementById(id).querySelector('input[value="All"]').checked=false;
       }
       applyFilters(data);
     });
   }
 
   function applyFilters(data) {
-    const selectedMonths = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb => cb.value);
-    const selectedStores = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb => cb.value);
-    const selectedPortfolios = Array.from(portfolioFilter.querySelectorAll('input:checked')).map(cb => cb.value);
-
-    const showAllMonths = selectedMonths.includes("All");
-    const showAllStores = selectedStores.includes("All");
-    const showAllPortfolios = selectedPortfolios.includes("All");
-
-    const filtered = data.filter(row =>
-      (showAllMonths || selectedMonths.includes(row.Date?.slice(3))) &&
-      (showAllStores || selectedStores.includes(row.Store)) &&
-      (showAllPortfolios || selectedPortfolios.includes((row["Portfolio name"] || "Unknown").trim()))
+    const selM = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb=>cb.value);
+    const selS = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb=>cb.value);
+    const selP = Array.from(portfolioFilter.querySelectorAll('input:checked')).map(cb=>cb.value);
+    const f = data.filter(r =>
+      (selM.includes("All")||selM.includes(r.Date?.slice(3))) &&
+      (selS.includes("All")||selS.includes(r.Store)) &&
+      (selP.includes("All")||selP.includes((r["Portfolio name"]||"Unknown").trim()))
     );
-
-    updateKPIs(filtered);
-    renderBarChart(filtered);
-    renderLineChart(filtered);
-    renderPivotTable(filtered);
+    updateKPIs(f);
+    renderCampaignTable(f);
+    renderPivotTable(f);
+    renderBarChart(f);
+    renderLineChart(f);
   }
 
-  function renderBarChart(data) {
-    console.log("📊 Bar chart would render here with", data.length, "records.");
-  }
-
-  function renderLineChart(data) {
-    console.log("📈 Line chart would render here with", data.length, "records.");
-  }
-
-  function renderPivotTable(data) {
-    const tableBody = document.querySelector("#pivotTable tbody");
-    if (!tableBody) return;
-
-    tableBody.innerHTML = "";
-
-    const storeMap = {};
-
-    data.forEach(row => {
-      const store = row.Store;
-      const spend = parseFloat(row["Spend"] || 0);
-      const sales = parseFloat(row["7 Day Total Sales"] || 0);
-      const orders = parseInt(row["7 Day Total Orders (#)"] || 0);
-      const acos = parseFloat(row["Total Advertising Cost of Sales (ACOS)"] || 0);
-
-      if (!storeMap[store]) {
-        storeMap[store] = { spend: 0, sales: 0, acosTotal: 0, acosCount: 0 };
-      }
-
-      storeMap[store].spend += spend;
-      storeMap[store].sales += sales;
-      if (!isNaN(acos)) {
-        storeMap[store].acosTotal += acos;
-        storeMap[store].acosCount++;
-      }
+  function renderCampaignTable(d) {
+    const t = document.querySelector('#dataTable tbody');
+    if(!t) return;
+    t.innerHTML = "";
+    d.forEach(r=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.Date||''}</td><td>${r.Store||''}</td><td>${r["Campaign Name"]||''}</td>
+        <td>${parseFloat(r.Spend||0).toFixed(2)}</td>
+        <td>${parseFloat(r["7 Day Total Sales"]||0).toFixed(2)}</td>
+        <td>${parseInt(r["7 Day Total Orders (#)"]||0)}</td>
+        <td>${parseFloat(r["Click-Thru Rate (CTR)"]||0).toFixed(2)}</td>`;
+      t.appendChild(tr);
     });
+    if($.fn.DataTable.isDataTable('#dataTable')) $('#dataTable').DataTable().clear().destroy();
+    $('#dataTable').DataTable({paging: true,searching: true,ordering: true, info: true});
+  }
 
-    Object.entries(storeMap).forEach(([store, values]) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${store}</td>
-        <td>$${values.spend.toFixed(2)}</td>
-        <td>$${values.sales.toFixed(2)}</td>
-        <td>${values.acosCount ? (values.acosTotal / values.acosCount).toFixed(2) + "%" : "0%"}</td>
-      `;
-      tableBody.appendChild(row);
+  function renderPivotTable(d) {
+    const t = document.querySelector('#pivotTable tbody');
+    if(!t) return;
+    t.innerHTML = '';
+    const m = {};
+    d.forEach(r=>{
+      const s = r.Store, sp = parseFloat(r.Spend)||0, sa = parseFloat(r["7 Day Total Sales"])||0, a = parseFloat(r["Total Advertising Cost of Sales (ACOS)"])||0;
+      if(!m[s]) m[s]={sp:0,sa:0,aSum:0,aCount:0};
+      m[s].sp+=sp; m[s].sa+=sa;
+      if(!isNaN(a)){m[s].aSum+=a; m[s].aCount++;}
     });
+    Object.entries(m).forEach(([s,v])=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${s}</td><td>$${v.sp.toFixed(2)}</td><td>$${v.sa.toFixed(2)}</td><td>${v.aCount?(v.aSum/v.aCount).toFixed(2)+'%':'0%'}</td>`;
+      t.appendChild(tr);
+    });
+  }
+
+  function renderBarChart(d) {
+    const ctx = document.getElementById('barChart').getContext('2d');
+    if(window.barChart) window.barChart.destroy();
+    const spendByStore = {};
+    d.forEach(r=>{spendByStore[r.Store] = (spendByStore[r.Store]||0) + (parseFloat(r.Spend)||0);});
+    const labels = Object.keys(spendByStore), dataVals = Object.values(spendByStore);
+    window.barChart = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{label:'Spend by Store', data:dataVals, backgroundColor:'rgba(54,162,235,0.6)'}] }});
+  }
+
+  function renderLineChart(d) {
+    const ctx = document.getElementById('lineChart1').getContext('2d');
+    if(window.lineChart) window.lineChart.destroy();
+    const salesByDate = {};
+    d.forEach(r=>{ const date=r.Date, sal = parseFloat(r["7 Day Total Sales"])||0; salesByDate[date]=(salesByDate[date]||0)+sal;});
+    const labels = Object.keys(salesByDate).sort(), dataVals= labels.map(l=>salesByDate[l]);
+    window.lineChart = new Chart(ctx,{type:'line', data:{labels, datasets:[{label:'Sales Over Time', data:dataVals, borderColor:'rgba(75,192,192,1)', fill:false}]}, options:{scales:{x:{ticks:{autoSkip:true,maxTicksLimit:10}}}});
   }
 };
