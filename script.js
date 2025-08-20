@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.onload = function () {
   const firebaseConfig = {
     apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
     authDomain: "ecom-ads-dashboard.firebaseapp.com",
@@ -102,5 +102,143 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ... (rest of your unchanged code follows)
-});
+  function updateDashboard(data) {
+    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))];
+    const uniqueStores = [...new Set(data.map(row => row.Store))];
+
+    monthFilter.innerHTML = uniqueMonths.map(month =>
+      `<label><input type="checkbox" value="${month}" checked> ${month}</label><br>`).join('');
+    storeFilter.innerHTML = uniqueStores.map(store =>
+      `<label><input type="checkbox" value="${store}" checked> ${store}</label><br>`).join('');
+
+    monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+    storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+
+    applyFilters(data);
+  }
+
+  function applyFilters(data) {
+    const selectedMonths = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+    const selectedStores = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+
+    let filtered = data.filter(row =>
+      selectedMonths.includes(row.Date?.slice(3)) &&
+      selectedStores.includes(row.Store)
+    );
+
+    updateKPIs(filtered);
+    renderBarChart(filtered);
+    renderLineChart(filtered);
+  }
+
+  function updateKPIs(data) {
+    const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
+
+    const sample = data[0] || {};
+    let salesKey = Object.keys(sample).find(k => k.toLowerCase().includes("total sales"));
+    if (!salesKey) salesKey = "7 Day Total Sales ";
+
+    const totalSales = data.reduce((sum, row) => {
+      const rawValue = row[salesKey] || "0";
+      const clean = rawValue.toString().replace(/[$,]/g, '');
+      return sum + parseFloat(clean || 0);
+    }, 0);
+
+    const totalOrders = data.reduce((sum, row) => sum + parseInt(row["7 Day Total Orders (#)"] || 0), 0);
+    const avgACOS = totalSales ? ((totalSpend / totalSales) * 100).toFixed(2) + '%' : '0%';
+    const avgCTR = data.length
+      ? (data.reduce((sum, row) => sum + parseFloat(row["Click-Thru Rate (CTR)"] || 0), 0) / data.length).toFixed(2) + '%'
+      : '0%';
+
+    kpiSpend.textContent = "$" + totalSpend.toFixed(2);
+    kpiSales.textContent = "$" + totalSales.toFixed(2);
+    kpiOrders.textContent = totalOrders;
+    kpiACOS.textContent = avgACOS;
+    kpiCTR.textContent = avgCTR;
+  }
+
+  function renderBarChart(data) {
+    const ctx = document.getElementById("barChart").getContext("2d");
+    if (window.barChartInstance) window.barChartInstance.destroy();
+
+    const storeSpend = {};
+    data.forEach(row => {
+      const store = row.Store || "Unknown";
+      const spend = parseFloat(row.Spend || 0);
+      storeSpend[store] = (storeSpend[store] || 0) + spend;
+    });
+
+    const labels = Object.keys(storeSpend);
+    const values = Object.values(storeSpend);
+
+    window.barChartInstance = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Spend by Store",
+          data: values,
+          backgroundColor: "rgba(54, 162, 235, 0.6)",
+          borderColor: "rgba(54, 162, 235, 1)",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Total Spend by Store'
+          }
+        }
+      }
+    });
+  }
+
+  function renderLineChart(data) {
+    const ctx = document.getElementById("lineChart1").getContext("2d");
+    if (window.lineChartInstance) window.lineChartInstance.destroy();
+
+    const dateSales = {};
+    data.forEach(row => {
+      const date = row.Date || "Unknown";
+      const raw = row["7 Day Total Sales"] || row["7 Day Total Sales ($)"] || "0";
+      const sales = parseFloat(raw.toString().replace(/[$,]/g, ""));
+      dateSales[date] = (dateSales[date] || 0) + sales;
+    });
+
+    const labels = Object.keys(dateSales).sort();
+    const values = labels.map(date => dateSales[date]);
+
+    window.lineChartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Sales Over Time",
+          data: values,
+          fill: false,
+          borderColor: "rgba(75, 192, 192, 1)",
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Total Sales Over Time'
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: 15
+            }
+          }
+        }
+      }
+    });
+  }
+};
