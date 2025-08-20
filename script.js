@@ -103,33 +103,30 @@ window.onload = function () {
   }
 
   function updateDashboard(data) {
-  const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
-  const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
+    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
+    const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
 
-  // Insert "All" at the beginning
-  const monthHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-    .concat(uniqueMonths.map(month =>
-      `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
-    )).join('');
+    const monthHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
+      .concat(uniqueMonths.map(month =>
+        `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
+      )).join('');
 
-  const storeHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
-    .concat(uniqueStores.map(store =>
-      `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
-    )).join('');
+    const storeHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
+      .concat(uniqueStores.map(store =>
+        `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
+      )).join('');
 
-  monthFilter.innerHTML = monthHTML;
-  storeFilter.innerHTML = storeHTML;
+    monthFilter.innerHTML = monthHTML;
+    storeFilter.innerHTML = storeHTML;
 
-  // Add event listeners to checkboxes
-  monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-  storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+    monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+    storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
 
-  // Toggle "All" behavior
-  enableAllCheckboxToggle('monthFilter', data);
-  enableAllCheckboxToggle('storeFilter', data);
+    enableAllCheckboxToggle('monthFilter', data);
+    enableAllCheckboxToggle('storeFilter', data);
 
-  applyFilters(data);
-}
+    applyFilters(data);
+  }
 
   function enableAllCheckboxToggle(groupId, data) {
     const container = document.getElementById(groupId);
@@ -162,6 +159,7 @@ window.onload = function () {
     updateKPIs(filtered);
     renderBarChart(filtered);
     renderLineChart(filtered);
+    renderPivotTable(filtered); // ✅ dynamically update Store-Wise Summary
   }
 
   function updateKPIs(data) {
@@ -241,14 +239,11 @@ window.onload = function () {
       return;
     }
 
-    console.log("📌 Using sales key for chart:", salesKey);
-
     const dateSales = {};
     data.forEach(row => {
       const date = row["Date"]?.trim() || "Unknown";
       const rawSales = row[salesKey] || "0";
       const sales = parseFloat(rawSales.toString().replace(/[$,]/g, ""));
-
       if (!isNaN(sales)) {
         dateSales[date] = (dateSales[date] || 0) + sales;
       }
@@ -277,7 +272,7 @@ window.onload = function () {
             text: 'Total Sales Over Time'
           }
         },
-                scales: {
+        scales: {
           x: {
             ticks: {
               autoSkip: true,
@@ -288,4 +283,50 @@ window.onload = function () {
       }
     });
   }
-};  // ✅ ← this closing brace is added to fix the “Unexpected end of input” error
+
+  function renderPivotTable(data) {
+    const pivot = {};
+    const sample = data[0] || {};
+    let salesKey = Object.keys(sample).find(k => k.toLowerCase().includes("total sales"));
+    if (!salesKey) salesKey = "7 Day Total Sales ";
+
+    data.forEach(row => {
+      const store = row.Store || "Unknown";
+      const spend = parseFloat(row["Spend"] || 0);
+      const sales = parseFloat((row[salesKey] || "0").toString().replace(/[$,]/g, ""));
+      if (!pivot[store]) pivot[store] = { spend: 0, sales: 0 };
+      pivot[store].spend += spend;
+      pivot[store].sales += sales;
+    });
+
+    const tbody = document.querySelector("#pivotTable tbody");
+    const tfoot = document.querySelector("#pivotTable tfoot");
+    tbody.innerHTML = "";
+    tfoot.innerHTML = "";
+
+    let totalSpend = 0, totalSales = 0;
+
+    Object.entries(pivot).forEach(([store, { spend, sales }]) => {
+      const acos = sales > 0 ? ((spend / sales) * 100).toFixed(2) + "%" : "0.00%";
+      totalSpend += spend;
+      totalSales += sales;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${store}</td>
+          <td>${spend.toFixed(2)}</td>
+          <td>${sales.toFixed(2)}</td>
+          <td>${acos}</td>
+        </tr>`;
+    });
+
+    const totalACOS = totalSales > 0 ? ((totalSpend / totalSales) * 100).toFixed(2) + "%" : "0.00%";
+    tfoot.innerHTML = `
+      <tr class="bold">
+        <td>Grand Total</td>
+        <td>${totalSpend.toFixed(2)}</td>
+        <td>${totalSales.toFixed(2)}</td>
+        <td>${totalACOS}</td>
+      </tr>`;
+  }
+};
