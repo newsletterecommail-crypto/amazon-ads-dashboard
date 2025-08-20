@@ -197,6 +197,7 @@ window.onload = function () {
     renderBarChart(filtered);
     renderLineChart(filtered);
     renderPivotTable(filtered);
+    renderCampaignTable(filtered);
   }
 
   function renderBarChart(data) {
@@ -219,7 +220,6 @@ window.onload = function () {
       const store = row.Store;
       const spend = parseFloat(row["Spend"] || 0);
       const sales = parseFloat(row["7 Day Total Sales"] || 0);
-      const orders = parseInt(row["7 Day Total Orders (#)"] || 0);
       const acos = parseFloat(row["Total Advertising Cost of Sales (ACOS)"] || 0);
 
       if (!storeMap[store]) {
@@ -243,6 +243,38 @@ window.onload = function () {
         <td>${values.acosCount ? (values.acosTotal / values.acosCount).toFixed(2) + "%" : "0%"}</td>
       `;
       tableBody.appendChild(row);
+    });
+  }
+
+  function renderCampaignTable(data) {
+    const tableBody = document.querySelector("#dataTable tbody");
+    if (!tableBody) return;
+
+    tableBody.innerHTML = "";
+
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row["Date"] || ""}</td>
+        <td>${row["Store"] || ""}</td>
+        <td>${row["Campaign Name"] || ""}</td>
+        <td>${parseFloat(row["Spend"] || 0).toFixed(2)}</td>
+        <td>${parseFloat(row["7 Day Total Sales"] || 0).toFixed(2)}</td>
+        <td>${parseInt(row["7 Day Total Orders (#)"] || 0)}</td>
+        <td>${parseFloat(row["Click-Thru Rate (CTR)"] || 0).toFixed(2)}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+
+    if ($.fn.DataTable.isDataTable("#dataTable")) {
+      $('#dataTable').DataTable().clear().destroy();
+    }
+
+    $('#dataTable').DataTable({
+      paging: true,
+      searching: true,
+      ordering: true,
+      info: true
     });
   }
 };
