@@ -1,5 +1,4 @@
 /* Basic styles for the Amazon Ads Dashboard */
-
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -84,22 +83,41 @@ header {
 .filter-panel {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 2rem;
   margin: 1rem 2rem;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .filter-group label {
-  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
   font-weight: bold;
+  display: block;
 }
 
-.filter-group select {
-  padding: 0.4rem 0.6rem;
+/* NEW: Checkbox styling for filters */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0.5rem;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #fff;
+  min-width: 150px;
 }
 
+.checkbox-group label {
+  font-weight: normal;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+/* KPI Cards */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -128,6 +146,7 @@ header {
   color: #0f62fe;
 }
 
+/* Charts */
 .chart-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
