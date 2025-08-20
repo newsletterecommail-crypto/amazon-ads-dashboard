@@ -35,7 +35,6 @@ window.onload = () => {
 
   const monthFilter = document.getElementById('monthFilter');
   const storeFilter = document.getElementById('storeFilter');
-  const checkboxContainer = document.getElementById('checkboxContainer');
 
   let allData = [];
 
@@ -59,12 +58,26 @@ window.onload = () => {
     if (user) {
       loginContainer.style.display = 'none';
       dashboardContainer.classList.remove('hidden');
+      insertCheckboxes();
       fetchCSVFromGitHub();
     } else {
       loginContainer.style.display = 'block';
       dashboardContainer.classList.add('hidden');
     }
   });
+
+  function insertCheckboxes() {
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.id = "checkboxContainer";
+    checkboxContainer.style.margin = "10px 0";
+    checkboxContainer.innerHTML = `
+      <label><input type="checkbox" class="metric-checkbox" value="Spend" checked> Show Spend</label>
+      <label><input type="checkbox" class="metric-checkbox" value="Sales" checked> Show Sales</label>
+      <label><input type="checkbox" class="metric-checkbox" value="Orders" checked> Show Orders</label>
+    `;
+    const filtersRow = document.querySelector('#monthFilter').parentNode;
+    filtersRow.appendChild(checkboxContainer);
+  }
 
   function fetchCSVFromGitHub() {
     const CSV1 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
@@ -118,13 +131,6 @@ window.onload = () => {
     monthFilter.addEventListener('change', () => applyFilters(data));
     storeFilter.addEventListener('change', () => applyFilters(data));
 
-    checkboxContainer.innerHTML = `
-      <label><input type="checkbox" id="showSpend" checked> Spend</label>
-      <label><input type="checkbox" id="showSales" checked> Sales</label>
-      <label><input type="checkbox" id="showOrders" checked> Orders</label>
-    `;
-    checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-
     applyFilters(data);
   }
 
@@ -145,6 +151,10 @@ window.onload = () => {
 
       return matchMonth && matchStore;
     });
+
+    console.log("📅 Selected Month:", selectedMonth);
+    console.log("🏪 Selected Store:", selectedStore);
+    console.log("✅ Filtered rows:", filtered.length);
 
     updateKPIs(filtered);
     renderBarChart(filtered);
@@ -171,14 +181,14 @@ window.onload = () => {
   }
 
   function renderBarChart(data) {
-    // TODO: Add Chart.js bar chart here
+    // placeholder logic
   }
 
   function renderLineChart(data) {
-    // TODO: Add Chart.js line chart here
+    // placeholder logic
   }
 
   function renderPivotTable(data) {
-    // TODO: Add DataTable logic here
+    // placeholder logic
   }
 };
