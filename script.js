@@ -12,11 +12,12 @@ window.onload = () => {
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  if (window['chartjs-plugin-zoom']) {
-    Chart.register(window['chartjs-plugin-zoom']);
-  } else {
-    console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
-  }
+ if (typeof ChartZoom !== "undefined") {
+  Chart.register(ChartZoom);
+} else {
+  console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
+}
+
 
   const loginContainer = document.getElementById('loginContainer');
   const dashboardContainer = document.getElementById('dashboardContainer');
