@@ -269,7 +269,7 @@ window.onload = function () {
             text: 'Total Sales Over Time'
           }
         },
-        scales: {
+                scales: {
           x: {
             ticks: {
               autoSkip: true,
@@ -280,4 +280,4 @@ window.onload = function () {
       }
     });
   }
-};
+};  // ✅ ← this closing brace is added to fix the “Unexpected end of input” error
