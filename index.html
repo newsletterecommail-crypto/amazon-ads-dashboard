@@ -57,17 +57,24 @@
 
   <!-- Dashboard Container -->
   <div id="dashboardContainer" class="hidden">
-    <!-- Filters -->
-    <div class="filter-panel">
-      <div class="filter-group">
-        <label>Months:</label>
-        <div id="monthFilter" class="checkbox-group"></div>
-      </div>
-      <div class="filter-group">
-        <label>Stores:</label>
-        <div id="storeFilter" class="checkbox-group"></div>
-      </div>
+    <<!-- Filters -->
+<div class="filter-panel">
+  <div class="filter-group">
+    <label for="monthFilter">Select Months:</label>
+    <div class="dropdown">
+      <button class="dropbtn">Months ▾</button>
+      <div class="dropdown-content" id="monthFilter"></div>
     </div>
+  </div>
+  <div class="filter-group">
+    <label for="storeFilter">Select Stores:</label>
+    <div class="dropdown">
+      <button class="dropbtn">Stores ▾</button>
+      <div class="dropdown-content" id="storeFilter"></div>
+    </div>
+  </div>
+</div>
+
 
     <!-- Logout Button -->
     <button id="logoutButton" class="logout">Log out</button>
