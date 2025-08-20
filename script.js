@@ -103,25 +103,25 @@ window.onload = function () {
   }
 
   function updateDashboard(data) {
-  const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
-  const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
+    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
+    const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
 
-  monthFilter.innerHTML = uniqueMonths.map(month =>
-    `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
-  ).join('') + `<label><input type="checkbox" value="All"> All</label>`;
+    monthFilter.innerHTML = uniqueMonths.map(month =>
+      `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
+    ).join('') + `<label><input type="checkbox" value="All"> All</label>`;
 
-  storeFilter.innerHTML = uniqueStores.map(store =>
-    `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
-  ).join('') + `<label><input type="checkbox" value="All"> All</label>`;
+    storeFilter.innerHTML = uniqueStores.map(store =>
+      `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
+    ).join('') + `<label><input type="checkbox" value="All"> All</label>`;
 
-  monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-  storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+    monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+    storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
 
-  enableAllCheckboxToggle('monthFilter', data);
-  enableAllCheckboxToggle('storeFilter', data);
+    enableAllCheckboxToggle('monthFilter', data);
+    enableAllCheckboxToggle('storeFilter', data);
 
-  applyFilters(data);
-}
+    applyFilters(data);
+  }
 
   function enableAllCheckboxToggle(groupId, data) {
     const container = document.getElementById(groupId);
@@ -140,21 +140,21 @@ window.onload = function () {
   }
 
   function applyFilters(data) {
-  const selectedMonths = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb => cb.value);
-  const selectedStores = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+    const selectedMonths = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+    const selectedStores = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb => cb.value);
 
-  const showAllMonths = selectedMonths.includes("All");
-  const showAllStores = selectedStores.includes("All");
+    const showAllMonths = selectedMonths.includes("All");
+    const showAllStores = selectedStores.includes("All");
 
-  const filtered = data.filter(row =>
-    (showAllMonths || selectedMonths.includes(row.Date?.slice(3))) &&
-    (showAllStores || selectedStores.includes(row.Store))
-  );
+    const filtered = data.filter(row =>
+      (showAllMonths || selectedMonths.includes(row.Date?.slice(3))) &&
+      (showAllStores || selectedStores.includes(row.Store))
+    );
 
-  updateKPIs(filtered);
-  renderBarChart(filtered);
-  renderLineChart(filtered);
-}
+    updateKPIs(filtered);
+    renderBarChart(filtered);
+    renderLineChart(filtered);
+  }
 
   function updateKPIs(data) {
     const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
@@ -220,54 +220,53 @@ window.onload = function () {
   }
 
   function renderLineChart(data) {
-  const ctx = document.getElementById("lineChart1").getContext("2d");
-  if (window.lineChartInstance) window.lineChartInstance.destroy();
+    const ctx = document.getElementById("lineChart1").getContext("2d");
+    if (window.lineChartInstance) window.lineChartInstance.destroy();
 
-  const dateSales = {};
+    const dateSales = {};
 
-  data.forEach(row => {
-    const date = row["Date"]?.trim() || "Unknown";
-    const rawSales = row["7 Day Total Sales"] || "0";
-    const sales = parseFloat(rawSales.toString().replace(/[$,]/g, ""));
+    data.forEach(row => {
+      const date = row["Date"]?.trim() || "Unknown";
+      const rawSales = row["7 Day Total Sales"] || "0";
+      const sales = parseFloat(rawSales.toString().replace(/[$,]/g, ""));
 
-    if (!isNaN(sales)) {
-      dateSales[date] = (dateSales[date] || 0) + sales;
-    }
-  });
+      if (!isNaN(sales)) {
+        dateSales[date] = (dateSales[date] || 0) + sales;
+      }
+    });
 
-  const labels = Object.keys(dateSales).sort();
-  const values = labels.map(date => dateSales[date]);
+    const labels = Object.keys(dateSales).sort();
+    const values = labels.map(date => dateSales[date]);
 
-  window.lineChartInstance = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "Sales Over Time",
-        data: values,
-        fill: false,
-        borderColor: "rgba(75, 192, 192, 1)",
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Total Sales Over Time'
-        }
+    window.lineChartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Sales Over Time",
+          data: values,
+          fill: false,
+          borderColor: "rgba(75, 192, 192, 1)",
+          tension: 0.3
+        }]
       },
-      scales: {
-        x: {
-          ticks: {
-            autoSkip: true,
-            maxTicksLimit: 15
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Total Sales Over Time'
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: 15
+            }
           }
         }
       }
-    }
-  });
-}
+    });
   }
 };
