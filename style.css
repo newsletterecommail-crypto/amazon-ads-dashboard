@@ -251,3 +251,24 @@ header {
 .dropdown-content input[type="checkbox"] {
   appearance: checkbox;  /* force native checkbox only */
 }
+#pivotTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+#pivotTable th,
+#pivotTable td {
+  border: 1px solid #ccc;
+  padding: 0.6rem;
+  text-align: center;
+}
+
+#pivotTable thead {
+  background-color: #f0f0f0;
+}
+
+#pivotTable tfoot {
+  background-color: #f9f9f9;
+  font-weight: bold;
+}
