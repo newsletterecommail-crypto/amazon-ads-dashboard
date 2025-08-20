@@ -220,64 +220,64 @@ window.onload = function () {
   }
 
   function renderLineChart(data) {
-  const ctx = document.getElementById("lineChart1").getContext("2d");
-  if (window.lineChartInstance) window.lineChartInstance.destroy();
+    const ctx = document.getElementById("lineChart1").getContext("2d");
+    if (window.lineChartInstance) window.lineChartInstance.destroy();
 
-  // Dynamically find the correct sales key
-  const firstRow = data[0] || {};
-  const salesKey = Object.keys(firstRow).find(k =>
-    k.toLowerCase().includes("total sales")
-  );
+    const firstRow = data[0] || {};
+    const salesKey = Object.keys(firstRow).find(k =>
+      k.toLowerCase().includes("total sales")
+    );
 
-  if (!salesKey) {
-    console.warn("⚠️ Sales key not found in CSV headers.");
-    return;
-  }
-
-  console.log("📌 Using sales key for chart:", salesKey);
-
-  const dateSales = {};
-  data.forEach(row => {
-    const date = row["Date"]?.trim() || "Unknown";
-    const rawSales = row[salesKey] || "0";
-    const sales = parseFloat(rawSales.toString().replace(/[$,]/g, ""));
-
-    if (!isNaN(sales)) {
-      dateSales[date] = (dateSales[date] || 0) + sales;
+    if (!salesKey) {
+      console.warn("⚠️ Sales key not found in CSV headers.");
+      return;
     }
-  });
 
-  const labels = Object.keys(dateSales).sort();
-  const values = labels.map(date => dateSales[date]);
+    console.log("📌 Using sales key for chart:", salesKey);
 
-  window.lineChartInstance = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "Sales Over Time",
-        data: values,
-        fill: false,
-        borderColor: "rgba(75, 192, 192, 1)",
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        title: {
-          display: true,
-          text: 'Total Sales Over Time'
-        }
+    const dateSales = {};
+    data.forEach(row => {
+      const date = row["Date"]?.trim() || "Unknown";
+      const rawSales = row[salesKey] || "0";
+      const sales = parseFloat(rawSales.toString().replace(/[$,]/g, ""));
+
+      if (!isNaN(sales)) {
+        dateSales[date] = (dateSales[date] || 0) + sales;
+      }
+    });
+
+    const labels = Object.keys(dateSales).sort();
+    const values = labels.map(date => dateSales[date]);
+
+    window.lineChartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Sales Over Time",
+          data: values,
+          fill: false,
+          borderColor: "rgba(75, 192, 192, 1)",
+          tension: 0.3
+        }]
       },
-      scales: {
-        x: {
-          ticks: {
-            autoSkip: true,
-            maxTicksLimit: 15
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Total Sales Over Time'
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: 15
+            }
           }
         }
       }
-    }
-  });
-}
+    });
+  }
+};
