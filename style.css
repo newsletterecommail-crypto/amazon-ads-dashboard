@@ -161,36 +161,30 @@ header {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Aggregated table styles */
+/* Table styles */
 .table-container {
   margin: 2rem;
   overflow-x: auto;
 }
 
-.agg-table {
+#dataTable {
   width: 100%;
   border-collapse: collapse;
 }
 
-.agg-table th,
-.agg-table td {
+#dataTable th,
+#dataTable td {
   border: 1px solid #ddd;
   padding: 0.5rem 0.75rem;
-  text-align: right;
+  text-align: center;
 }
 
-.agg-table th:first-child,
-.agg-table td:first-child {
-  text-align: left;
-}
-
-.agg-table thead th {
+#dataTable thead th {
   background-color: #f4f4f4;
   font-weight: bold;
   color: #333;
 }
 
-.agg-table tfoot td {
-  font-weight: bold;
-  background-color: #fafafa;
+#dataTable tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
 }
