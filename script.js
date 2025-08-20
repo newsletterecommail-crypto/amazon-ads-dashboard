@@ -12,12 +12,12 @@ window.onload = () => {
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
- if (typeof ChartZoom !== "undefined") {
-  Chart.register(ChartZoom);
-} else {
-  console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
-}
-
+  // Correct plugin registration for Chart Zoom
+  if (typeof ChartZoom !== "undefined") {
+    Chart.register(ChartZoom);
+  } else {
+    console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
+  }
 
   const loginContainer = document.getElementById('loginContainer');
   const dashboardContainer = document.getElementById('dashboardContainer');
@@ -69,7 +69,6 @@ window.onload = () => {
   function fetchCSVFromGitHub() {
     const CSV1 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
     const CSV2 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part2.csv";
-    let merged = [];
 
     Promise.all([
       fetch(CSV1).then(r => r.text()),
@@ -83,8 +82,7 @@ window.onload = () => {
             header: true,
             skipEmptyLines: true,
             complete: res2 => {
-              merged = res1.data.concat(res2.data);
-              allData = merged;
+              allData = res1.data.concat(res2.data);
               initDashboard(allData);
             }
           });
@@ -98,18 +96,16 @@ window.onload = () => {
     const storeSet = new Set();
 
     data.forEach(row => {
-     let rowMonth = "";
-const dateParts = row["Date"]?.split("-");
-if (dateParts.length === 3) {
-  // Format: DD-MM-YYYY → extract MM-YYYY
-  const [day, month, year] = dateParts;
-  rowMonth = `${month}-${year}`;
-} else {
-  console.warn("Invalid Date:", row["Date"]);
-}
-
-        monthSet.add(m);
+      let rowMonth = "";
+      const dateParts = row["Date"]?.split("-");
+      if (dateParts.length === 3) {
+        const [day, month, year] = dateParts;
+        rowMonth = `${month}-${year}`;
+      } else {
+        console.warn("Invalid Date:", row["Date"]);
       }
+
+      monthSet.add(rowMonth);
       if (row.Store) storeSet.add(row.Store);
     });
 
@@ -125,41 +121,39 @@ if (dateParts.length === 3) {
     applyFilters(data);
   }
 
- function applyFilters(data) {
-  const selectedMonth = monthFilter.value;
-  const selectedStore = storeFilter.value;
+  function applyFilters(data) {
+    const selectedMonth = monthFilter.value;
+    const selectedStore = storeFilter.value;
 
-  const filtered = data.filter(row => {
-    const dt = new Date(row["Date"]);
-    const rowMonth = !isNaN(dt) ? ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + dt.getFullYear() : "";
+    const filtered = data.filter(row => {
+      let rowMonth = "";
+      const dateParts = row["Date"]?.split("-");
+      if (dateParts.length === 3) {
+        const [day, month, year] = dateParts;
+        rowMonth = `${month}-${year}`;
+      }
 
-    // Log debugging info
-    if (isNaN(dt)) console.warn("Invalid Date:", row["Date"]);
+      const matchMonth = selectedMonth === "All" || rowMonth === selectedMonth;
+      const matchStore = selectedStore === "All" || row.Store === selectedStore;
 
-    const matchMonth = selectedMonth === "All" || rowMonth === selectedMonth;
-    const matchStore = selectedStore === "All" || row.Store === selectedStore;
+      return matchMonth && matchStore;
+    });
 
-    return matchMonth && matchStore;
-  });
-
-  console.log("📅 Selected Month:", selectedMonth);
-  console.log("🏪 Selected Store:", selectedStore);
-  console.log("✅ Filtered rows:", filtered.length);
-
-  updateKPIs(filtered);
-  renderBarChart(filtered);
-  renderLineChart(filtered);
-  renderPivotTable(filtered);
-}
+    updateKPIs(filtered);
+    renderBarChart(filtered);
+    renderLineChart(filtered);
+    renderPivotTable(filtered);
+  }
 
   function updateKPIs(data) {
     let spend = 0, sales = 0, orders = 0, acosSum = 0, ctrSum = 0, count = 0;
+
     data.forEach(row => {
       spend += parseFloat(row.Spend) || 0;
-      sales += parseFloat(row["7 Day Total Sales"]) || 0;
+      sales += parseFloat(row["7 Day Total Sales"]?.replace(/[^0-9.]/g, "")) || 0;
       orders += parseInt(row["7 Day Total Orders (#)"]) || 0;
-      acosSum += parseFloat(row["Total Advertising Cost of Sales (ACOS)"]) || 0;
-      ctrSum += parseFloat(row["Click-Thru Rate (CTR)"]) || 0;
+      acosSum += parseFloat(row["Total Advertising Cost of Sales (ACOS)"]?.replace(/[^0-9.]/g, "")) || 0;
+      ctrSum += parseFloat(row["Click-Thru Rate (CTR)"]?.replace(/[^0-9.]/g, "")) || 0;
       count++;
     });
 
