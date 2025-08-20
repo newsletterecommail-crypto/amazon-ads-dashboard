@@ -77,7 +77,7 @@ window.onload = () => {
     let spend = 0, sales = 0, orders = 0, ctrSum = 0, ctrCount = 0;
     data.forEach(r => {
       spend += parseFloat(r["Spend"] || 0);
-      sales += parseFloat(r["7 Day Total Sales "] || 0); // FIXED HEADER
+      sales += parseFloat(r["7 Day Total Sales ($)"] || 0);
       orders += parseInt(r["7 Day Total Orders (#)"] || 0);
       const ctr = parseFloat(r["Click-Thru Rate (CTR)"] || 0);
       if (!isNaN(ctr)) {
@@ -93,8 +93,7 @@ window.onload = () => {
   }
 
   function renderCharts(data) {
-    // Placeholder for chart logic
-    // You can add Chart.js visualizations here if needed
+    // Placeholder for chart logic using Chart.js and zoom plugin
   }
 
   function renderTable(data) {
@@ -104,11 +103,14 @@ window.onload = () => {
     let totalSpend = 0, totalSales = 0, totalOrders = 0;
     data.forEach(r => {
       const s = parseFloat(r["Spend"] || 0);
-      const sa = parseFloat(r["7 Day Total Sales "] || 0); // FIXED HEADER
+      const sa = parseFloat(r["7 Day Total Sales ($)"] || 0);
       const o = parseInt(r["7 Day Total Orders (#)"] || 0);
       totalSpend += s;
       totalSales += sa;
       totalOrders += o;
+
+      const ctr = r["Click-Thru Rate (CTR)"];
+      const ctrDisplay = ctr ? ctr + "%" : "-";
 
       table.row.add([
         r["Date"] || '',
@@ -117,7 +119,7 @@ window.onload = () => {
         "$" + s.toFixed(2),
         "$" + sa.toFixed(2),
         o,
-        (r["Click-Thru Rate (CTR)"] || "0") + '%'
+        ctrDisplay
       ]);
     });
 
@@ -132,9 +134,4 @@ window.onload = () => {
 
     table.draw();
   }
-
-  // Ensure DataTables loads
-  $(document).ready(() => {
-    $('#dataTable').DataTable();
-  });
 };
