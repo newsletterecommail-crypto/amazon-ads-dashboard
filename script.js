@@ -156,22 +156,25 @@ window.onload = function () {
   }
 
   function applyFilters(data) {
-    const selectedMonths = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb => cb.value);
-    const selectedStores = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+  const selectedMonths = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+  const selectedStores = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+  const selectedPortfolios = Array.from(document.getElementById('portfolioFilter').querySelectorAll('input:checked')).map(cb => cb.value); // ✅ NEW
 
-    const showAllMonths = selectedMonths.includes("All");
-    const showAllStores = selectedStores.includes("All");
+  const showAllMonths = selectedMonths.includes("All");
+  const showAllStores = selectedStores.includes("All");
+  const showAllPortfolios = selectedPortfolios.includes("All"); // ✅ NEW
 
-    const filtered = data.filter(row =>
-      (showAllMonths || selectedMonths.includes(row.Date?.slice(3))) &&
-      (showAllStores || selectedStores.includes(row.Store))
-    );
+  const filtered = data.filter(row =>
+    (showAllMonths || selectedMonths.includes(row.Date?.slice(3))) &&
+    (showAllStores || selectedStores.includes(row.Store)) &&
+    (showAllPortfolios || selectedPortfolios.includes(row["Portfolio"])) // ✅ NEW
+  );
 
-    updateKPIs(filtered);
-    renderBarChart(filtered);
-    renderLineChart(filtered);
-    renderPivotTable(filtered); // ✅ dynamically update Store-Wise Summary
-  }
+  updateKPIs(filtered);
+  renderBarChart(filtered);
+  renderLineChart(filtered);
+  renderPivotTable(filtered);
+}
 
   function updateKPIs(data) {
     const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
