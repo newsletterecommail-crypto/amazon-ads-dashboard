@@ -104,28 +104,28 @@ window.onload = function () {
   }
 
   function updateKPIs(data) {
-  let totalSpend = 0, totalSales = 0, totalOrders = 0, totalACOS = 0, totalCTR = 0, count = 0;
+    let totalSpend = 0, totalSales = 0, totalOrders = 0, totalACOS = 0, totalCTR = 0, count = 0;
 
-  data.forEach(row => {
-    const spend = parseFloat(row["Spend"] || 0);
-    const sales = parseFloat(row["7 Day Total Sales"] || 0);
-    const orders = parseInt(row["7 Day Total Orders (#)"] || 0);
-    const acos = parseFloat(row["Total Advertising Cost of Sales (ACOS)"] || 0);
-    const ctr = parseFloat(row["Click-Thru Rate (CTR)"] || 0);
+    data.forEach(row => {
+      const spend = parseFloat(row["Spend"] || 0);
+      const sales = parseFloat(row["7 Day Total Sales"] || 0);
+      const orders = parseInt(row["7 Day Total Orders (#)"] || 0);
+      const acos = parseFloat(row["Total Advertising Cost of Sales (ACOS)"] || 0);
+      const ctr = parseFloat(row["Click-Thru Rate (CTR)"] || 0);
 
-    if (!isNaN(spend)) totalSpend += spend;
-    if (!isNaN(sales)) totalSales += sales;
-    if (!isNaN(orders)) totalOrders += orders;
-    if (!isNaN(acos)) { totalACOS += acos; count++; }
-    if (!isNaN(ctr)) totalCTR += ctr;
-  });
+      if (!isNaN(spend)) totalSpend += spend;
+      if (!isNaN(sales)) totalSales += sales;
+      if (!isNaN(orders)) totalOrders += orders;
+      if (!isNaN(acos)) { totalACOS += acos; count++; }
+      if (!isNaN(ctr)) totalCTR += ctr;
+    });
 
-  kpiSpend.textContent = `$${totalSpend.toFixed(2)}`;
-  kpiSales.textContent = `$${totalSales.toFixed(2)}`;
-  kpiOrders.textContent = totalOrders;
-  kpiACOS.textContent = count ? `${(totalACOS / count).toFixed(2)}%` : "0%";
-  kpiCTR.textContent = `${(totalCTR / data.length).toFixed(2)}%`;
-}
+    kpiSpend.textContent = `$${totalSpend.toFixed(2)}`;
+    kpiSales.textContent = `$${totalSales.toFixed(2)}`;
+    kpiOrders.textContent = totalOrders;
+    kpiACOS.textContent = count ? `${(totalACOS / count).toFixed(2)}%` : "0%";
+    kpiCTR.textContent = `${(totalCTR / data.length).toFixed(2)}%`;
+  }
 
   function updateDashboard(data) {
     const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
@@ -199,5 +199,50 @@ window.onload = function () {
     renderPivotTable(filtered);
   }
 
-  // renderBarChart, renderLineChart, renderPivotTable assumed defined below...
+  function renderBarChart(data) {
+    console.log("📊 Bar chart would render here with", data.length, "records.");
+  }
+
+  function renderLineChart(data) {
+    console.log("📈 Line chart would render here with", data.length, "records.");
+  }
+
+  function renderPivotTable(data) {
+    const tableBody = document.querySelector("#pivotTable tbody");
+    if (!tableBody) return;
+
+    tableBody.innerHTML = "";
+
+    const storeMap = {};
+
+    data.forEach(row => {
+      const store = row.Store;
+      const spend = parseFloat(row["Spend"] || 0);
+      const sales = parseFloat(row["7 Day Total Sales"] || 0);
+      const orders = parseInt(row["7 Day Total Orders (#)"] || 0);
+      const acos = parseFloat(row["Total Advertising Cost of Sales (ACOS)"] || 0);
+
+      if (!storeMap[store]) {
+        storeMap[store] = { spend: 0, sales: 0, acosTotal: 0, acosCount: 0 };
+      }
+
+      storeMap[store].spend += spend;
+      storeMap[store].sales += sales;
+      if (!isNaN(acos)) {
+        storeMap[store].acosTotal += acos;
+        storeMap[store].acosCount++;
+      }
+    });
+
+    Object.entries(storeMap).forEach(([store, values]) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${store}</td>
+        <td>$${values.spend.toFixed(2)}</td>
+        <td>$${values.sales.toFixed(2)}</td>
+        <td>${values.acosCount ? (values.acosTotal / values.acosCount).toFixed(2) + "%" : "0%"}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
 };
