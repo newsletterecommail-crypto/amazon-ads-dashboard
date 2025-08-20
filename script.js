@@ -103,29 +103,33 @@ window.onload = function () {
   }
 
   function updateDashboard(data) {
-    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
-    const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
+  const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
+  const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
 
-    monthFilter.innerHTML = 
-  `<label><input type="checkbox" value="All" checked> All</label>` +
-  uniqueMonths.map(month =>
-    `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
-  ).join('');
+  // Insert "All" at the beginning
+  const monthHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
+    .concat(uniqueMonths.map(month =>
+      `<label><input type="checkbox" value="${month}" checked> ${month}</label>`
+    )).join('');
 
-storeFilter.innerHTML = 
-  `<label><input type="checkbox" value="All" checked> All</label>` +
-  uniqueStores.map(store =>
-    `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
-  ).join('');
+  const storeHTML = [`<label><input type="checkbox" value="All" checked> All</label>`]
+    .concat(uniqueStores.map(store =>
+      `<label><input type="checkbox" value="${store}" checked> ${store}</label>`
+    )).join('');
 
-    monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
-    storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+  monthFilter.innerHTML = monthHTML;
+  storeFilter.innerHTML = storeHTML;
 
-    enableAllCheckboxToggle('monthFilter', data);
-    enableAllCheckboxToggle('storeFilter', data);
+  // Add event listeners to checkboxes
+  monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
+  storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
 
-    applyFilters(data);
-  }
+  // Toggle "All" behavior
+  enableAllCheckboxToggle('monthFilter', data);
+  enableAllCheckboxToggle('storeFilter', data);
+
+  applyFilters(data);
+}
 
   function enableAllCheckboxToggle(groupId, data) {
     const container = document.getElementById(groupId);
