@@ -241,3 +241,13 @@ header {
   margin-bottom: 0.4rem;
   cursor: pointer;
 }
+/* Optional: Clean up checkbox spacing inside dropdown */
+.dropdown-content label {
+  display: block;
+  margin: 4px 0;
+}
+
+/* Optional: Prevent nested dropdown icons */
+.dropdown-content input[type="checkbox"] {
+  appearance: checkbox;  /* force native checkbox only */
+}
