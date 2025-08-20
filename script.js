@@ -103,16 +103,27 @@ window.onload = function () {
   }
 
   function updateDashboard(data) {
-    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))];
-    const uniqueStores = [...new Set(data.map(row => row.Store))];
+    const uniqueMonths = [...new Set(data.map(row => row.Date?.slice(3)))].sort();
+    const uniqueStores = [...new Set(data.map(row => row.Store))].sort();
 
-    monthFilter.innerHTML = uniqueMonths.map(month =>
-      `<label><input type="checkbox" value="${month}" checked> ${month}</label>`).join('') +
-      `<label><input type="checkbox" value="All"> All</label>`;
+    const monthOptions = uniqueMonths.map(month => `<label><input type="checkbox" value="${month}" checked> ${month}</label>`).join('');
+    const storeOptions = uniqueStores.map(store => `<label><input type="checkbox" value="${store}" checked> ${store}</label>`).join('');
 
-    storeFilter.innerHTML = uniqueStores.map(store =>
-      `<label><input type="checkbox" value="${store}" checked> ${store}</label>`).join('') +
-      `<label><input type="checkbox" value="All"> All</label>`;
+    monthFilter.innerHTML = `
+      <button class="dropdown-toggle">Months ▼</button>
+      <div class="dropdown-options">
+        ${monthOptions}
+        <label><input type="checkbox" value="All"> All</label>
+      </div>
+    `;
+
+    storeFilter.innerHTML = `
+      <button class="dropdown-toggle">Stores ▼</button>
+      <div class="dropdown-options">
+        ${storeOptions}
+        <label><input type="checkbox" value="All"> All</label>
+      </div>
+    `;
 
     monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
     storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
@@ -129,7 +140,7 @@ window.onload = function () {
       if (e.target.value === "All") {
         const isChecked = e.target.checked;
         container.querySelectorAll('input[type=checkbox]').forEach(cb => {
-          cb.checked = cb.value === "All" || !isChecked;
+          cb.checked = isChecked;
         });
       } else {
         const allBox = container.querySelector('input[value="All"]');
@@ -155,7 +166,6 @@ window.onload = function () {
 
   function updateKPIs(data) {
     const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
-
     const sample = data[0] || {};
     let salesKey = Object.keys(sample).find(k => k.toLowerCase().includes("total sales"));
     if (!salesKey) salesKey = "7 Day Total Sales ";
