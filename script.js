@@ -194,10 +194,87 @@ window.onload = function () {
   }
 
   function renderBarChart(data) {
-    // Add logic if needed
+    const ctx = document.getElementById("barChart").getContext("2d");
+    if (window.barChartInstance) window.barChartInstance.destroy();
+
+    const storeSpend = {};
+    data.forEach(row => {
+      const store = row.Store || "Unknown";
+      const spend = parseFloat(row.Spend || 0);
+      storeSpend[store] = (storeSpend[store] || 0) + spend;
+    });
+
+    const labels = Object.keys(storeSpend);
+    const values = Object.values(storeSpend);
+
+    window.barChartInstance = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Spend by Store",
+          data: values,
+          backgroundColor: "rgba(54, 162, 235, 0.6)",
+          borderColor: "rgba(54, 162, 235, 1)",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Total Spend by Store'
+          }
+        }
+      }
+    });
   }
 
   function renderLineChart(data) {
-    // Add logic if needed
+    const ctx = document.getElementById("lineChart1").getContext("2d");
+    if (window.lineChartInstance) window.lineChartInstance.destroy();
+
+    const dateSales = {};
+    data.forEach(row => {
+      const date = row.Date || "Unknown";
+      const raw = row["7 Day Total Sales"] || row["7 Day Total Sales ($)"] || "0";
+      const sales = parseFloat(raw.toString().replace(/[$,]/g, ""));
+      dateSales[date] = (dateSales[date] || 0) + sales;
+    });
+
+    const labels = Object.keys(dateSales).sort();
+    const values = labels.map(date => dateSales[date]);
+
+    window.lineChartInstance = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Sales Over Time",
+          data: values,
+          fill: false,
+          borderColor: "rgba(75, 192, 192, 1)",
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Total Sales Over Time'
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: 15
+            }
+          }
+        }
+      }
+    });
   }
 };
