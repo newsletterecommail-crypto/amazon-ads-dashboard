@@ -14,6 +14,7 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 
   <!-- DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
@@ -27,11 +28,12 @@
   <!-- Papa Parse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.min.js" defer></script>
 
-  <!-- Chart.js core -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
-
-  <!-- Chart.js Zoom Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.umd.js" defer></script>
+
+  <!-- Choices.js -->
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js" defer></script>
 </head>
 
 <body>
@@ -45,10 +47,10 @@
     <form id="authForm" onsubmit="return false;">
       <label for="email">Email</label>
       <input type="email" id="email" name="email" autocomplete="email" required />
-      
+
       <label for="password">Password</label>
       <input type="password" id="password" name="password" autocomplete="current-password" required />
-      
+
       <div class="auth-buttons">
         <button type="button" id="signupButton">Sign Up</button>
         <button type="button" id="loginButton">Login</button>
@@ -64,16 +66,15 @@
     <div class="filter-panel">
       <div class="filter-group">
         <label for="monthFilter">Select Month:</label>
-        <select id="monthFilter"></select>
+        <select id="monthFilter" multiple></select>
       </div>
       <div class="filter-group">
         <label for="storeFilter">Select Store:</label>
-        <select id="storeFilter"></select>
+        <select id="storeFilter" multiple></select>
       </div>
       <button id="logoutButton" class="logout">Log out</button>
     </div>
 
-    
     <!-- KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card"><h3>Total Spend</h3><p id="kpiSpend">0</p></div>
