@@ -57,27 +57,24 @@
 
   <!-- Dashboard Container -->
   <div id="dashboardContainer" class="hidden">
-    
 
     <!-- Filters -->
-<div class="filter-panel">
-  <div class="filter-group">
-    <label for="monthFilter">Select Months:</label>
-    <div class="dropdown">
-      <button class="dropbtn">Select Months</button>
-      <div class="dropdown-content" id="monthFilter"></div>
+    <div class="filter-panel">
+      <div class="filter-group">
+        <label for="monthFilter">Select Months:</label>
+        <div class="dropdown">
+          <button class="dropbtn">Select Months</button>
+          <div class="dropdown-content" id="monthFilter"></div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label for="storeFilter">Select Stores:</label>
+        <div class="dropdown">
+          <button class="dropbtn">Select Stores</button>
+          <div class="dropdown-content" id="storeFilter"></div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="filter-group">
-    <label for="storeFilter">Select Stores:</label>
-    <div class="dropdown">
-      <button class="dropbtn">Select Stores</button>
-      <div class="dropdown-content" id="storeFilter"></div>
-    </div>
-  </div>
-</div>
-
-
 
     <!-- Logout Button -->
     <button id="logoutButton" class="logout">Log out</button>
@@ -97,23 +94,8 @@
       <div class="chart-container"><canvas id="lineChart1"></canvas></div>
       <div class="chart-container"><canvas id="lineChart2"></canvas></div>
     </div>
-<div class="table-container">
-  <h3>Store-Wise Summary</h3>
-  <table id="pivotTable">
-    <thead>
-      <tr>
-        <th>Store</th>
-        <th>Spend ($)</th>
-        <th>7 Day Total Sales ($)</th>
-        <th>ACOS (%)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-    <tfoot></tfoot>
-  </table>
-</div>
 
-    <!-- Table -->
+    <!-- Campaign Table -->
     <div class="table-container">
       <table id="dataTable" class="display">
         <thead>
@@ -128,6 +110,23 @@
           </tr>
         </thead>
         <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Store-Wise Summary Table (MOVED TO BOTTOM) -->
+    <div class="table-container">
+      <h3>Store-Wise Summary</h3>
+      <table id="pivotTable">
+        <thead>
+          <tr>
+            <th>Store</th>
+            <th>Spend ($)</th>
+            <th>7 Day Total Sales ($)</th>
+            <th>ACOS (%)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
       </table>
     </div>
   </div>
