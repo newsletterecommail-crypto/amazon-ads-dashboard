@@ -1,226 +1,135 @@
-window.onload = function () {
-  const firebaseConfig = {
-    apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
-    authDomain: "ecom-ads-dashboard.firebaseapp.com",
-    projectId: "ecom-ads-dashboard",
-    storageBucket: "ecom-ads-dashboard.appspot.com",
-    messagingSenderId: "98800254885",
-    appId: "1:98800254885:web:887b2679a23362f8b6b24c",
-    measurementId: "G-42KBT0D9ET"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-
-  const loginContainer = document.getElementById('loginContainer');
-  const dashboardContainer = document.getElementById('dashboardContainer');
-  const signupButton = document.getElementById('signupButton');
-  const loginButton = document.getElementById('loginButton');
-  const logoutButton = document.getElementById('logoutButton');
-  const authMessage = document.getElementById('authMessage');
-
-  const csvUrl = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
+window.onload = () => {
+  const CSV1 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
+  const CSV2 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part2.csv";
   let allData = [];
 
-  const monthFilter = document.getElementById('monthFilter');
-  const storeFilter = document.getElementById('storeFilter');
+  Promise.all([fetch(CSV1).then(r => r.text()), fetch(CSV2).then(r => r.text())])
+    .then(([text1, text2]) => {
+      Papa.parse(text1, {
+        header: true,
+        skipEmptyLines: true,
+        complete: res1 => {
+          Papa.parse(text2, {
+            header: true,
+            skipEmptyLines: true,
+            complete: res2 => {
+              allData = res1.data.concat(res2.data);
+              initDashboard(allData);
+            }
+          });
+        }
+      });
+    });
 
-  signupButton.addEventListener('click', () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(() => location.reload())
-      .catch(err => authMessage.textContent = err.message);
-  });
+  function initDashboard(data) {
+    const monthSet = new Set();
+    const storeSet = new Set();
 
-  loginButton.addEventListener('click', () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    auth.signInWithEmailAndPassword(email, password)
-      .then(() => location.reload())
-      .catch(err => authMessage.textContent = err.message);
-  });
-
-  logoutButton.addEventListener('click', () => {
-    auth.signOut().then(() => location.reload());
-  });
-
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      loginContainer.classList.add('hidden');
-      dashboardContainer.classList.remove('hidden');
-      fetchAndParseCSV();
-    } else {
-      loginContainer.classList.remove('hidden');
-      dashboardContainer.classList.add('hidden');
-    }
-  });
-
-  function fetchAndParseCSV() {
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      complete: function (results) {
-        allData = results.data;
-        populateFilters();
-        updateDashboard();
+    data.forEach(row => {
+      const dt = new Date(row["Date"]);
+      if (!isNaN(dt)) {
+        const m = ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + dt.getFullYear();
+        monthSet.add(m);
       }
+      if (row["Store"]) storeSet.add(row["Store"]);
     });
+
+    const monthArr = [...monthSet].sort();
+    const storeArr = [...storeSet].sort();
+
+    const monthSel = document.getElementById("monthFilter");
+    const storeSel = document.getElementById("storeFilter");
+
+    monthSel.innerHTML = '<option value="All">All</option>';
+    monthArr.forEach(m => {
+      monthSel.innerHTML += `<option value="${m}">${m}</option>`;
+    });
+
+    storeSel.innerHTML = '<option value="All">All</option>';
+    storeArr.forEach(s => {
+      storeSel.innerHTML += `<option value="${s}">${s}</option>`;
+    });
+
+    monthSel.addEventListener("change", () => applyFilters(data));
+    storeSel.addEventListener("change", () => applyFilters(data));
+
+    applyFilters(data); // initial load
   }
 
-  function populateFilters() {
-    const months = [...new Set(allData.map(d => {
-      // extract MM-YYYY or full "Month Year" from Date
-      const parts = d.Date?.split('-');
-      return parts?.length === 3 ? parts[1] + '-' + parts[2] : '';
-    }))].filter(m => m).sort();
+  function applyFilters(data) {
+    const selMonth = document.getElementById("monthFilter").value;
+    const selStore = document.getElementById("storeFilter").value;
 
-    const stores = [...new Set(allData.map(d => d.Store))].sort();
-
-    addCheckboxes(monthFilter, months);
-    addCheckboxes(storeFilter, stores);
-
-    document.querySelectorAll('.dropdown-content input').forEach(input => {
-      input.addEventListener('change', updateDashboard);
-    });
-  }
-
-  function addCheckboxes(container, items) {
-    container.innerHTML = '';
-    container.innerHTML += `<label><input type="checkbox" value="All" checked> All</label><br>`;
-    items.forEach(item => {
-      container.innerHTML += `<label><input type="checkbox" value="${item}"> ${item}</label><br>`;
-    });
-  }
-
-  function updateDashboard() {
-    const selectedMonths = getCheckedValues(monthFilter);
-    const selectedStores = getCheckedValues(storeFilter);
-
-    const filtered = allData.filter(row => {
-      const month = row.Date?.split('-').slice(1).join('-'); // "MM-YYYY"
-      const inMonth = selectedMonths.includes("All") || selectedMonths.includes(month);
-      const inStore = selectedStores.includes("All") || selectedStores.includes(row.Store);
-      return inMonth && inStore;
+    const filtered = data.filter(row => {
+      const dt = new Date(row["Date"]);
+      const m = ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + dt.getFullYear();
+      const monthOK = selMonth === "All" || m === selMonth;
+      const storeOK = selStore === "All" || row["Store"] === selStore;
+      return monthOK && storeOK;
     });
 
     updateKPIs(filtered);
-    updateCharts(filtered);
-    updateTable(filtered);
-    updatePivotTable(filtered);
-  }
-
-  function getCheckedValues(container) {
-    return [...container.querySelectorAll('input:checked')].map(input => input.value);
+    renderCharts(filtered);
+    renderTable(filtered);
   }
 
   function updateKPIs(data) {
-    const spend = sum(data, "Spend");
-    const sales = sum(data, "7 Day Total Sales ");
-    const orders = sum(data, "7 Day Total Orders (#)");
-    const acos = spend > 0 ? (spend / sales) * 100 : 0;
-    const ctr = avg(data, "Click-Thru Rate (CTR)");
-
-    document.getElementById("kpiSpend").textContent = `$${spend.toFixed(2)}`;
-    document.getElementById("kpiSales").textContent = `$${sales.toFixed(2)}`;
+    let spend = 0, sales = 0, orders = 0, ctrSum = 0, ctrCount = 0;
+    data.forEach(r => {
+      spend += parseFloat(r["Spend"] || 0);
+      sales += parseFloat(r["7 Day Total Sales (whatever exact header)"] || 0);
+      orders += parseInt(r["7 Day Total Orders (#)"] || 0);
+      const ctr = parseFloat(r["Click-Thru Rate (CTR)"] || 0);
+      if (!isNaN(ctr)) {
+        ctrSum += ctr;
+        ctrCount++;
+      }
+    });
+    document.getElementById("kpiSpend").textContent = "$" + spend.toFixed(2);
+    document.getElementById("kpiSales").textContent = "$" + sales.toFixed(2);
     document.getElementById("kpiOrders").textContent = orders;
-    document.getElementById("kpiACOS").textContent = `${acos.toFixed(2)}%`;
-    document.getElementById("kpiCTR").textContent = `${ctr.toFixed(2)}%`;
+    document.getElementById("kpiACOS").textContent = sales ? ((spend / sales) * 100).toFixed(2) + "%" : "0%";
+    document.getElementById("kpiCTR").textContent = ctrCount ? (ctrSum / ctrCount).toFixed(2) + "%" : "0%";
   }
 
-  function sum(data, key) {
-    return data.reduce((total, row) => total + parseFloat(row[key] || 0), 0);
+  function renderCharts(data) {
+    // Your existing chart rendering logic using filtered data
+    // Make sure to regenerate charts based on `data`
   }
 
-  function avg(data, key) {
-    const vals = data.map(r => parseFloat(r[key] || 0)).filter(v => !isNaN(v));
-    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
-  }
-
-  let barChart, lineChart1, lineChart2;
-
-  function updateCharts(data) {
-    const grouped = {};
-    data.forEach(row => {
-      const store = row["Store"];
-      grouped[store] = grouped[store] || { spend: 0, sales: 0 };
-      grouped[store].spend += parseFloat(row["Spend"] || 0);
-      grouped[store].sales += parseFloat(row["7 Day Total Sales "] || 0);
-    });
-
-    const labels = Object.keys(grouped);
-    const spendData = labels.map(l => grouped[l].spend);
-    const salesData = labels.map(l => grouped[l].sales);
-
-    if (barChart) barChart.destroy();
-    if (lineChart1) lineChart1.destroy();
-    if (lineChart2) lineChart2.destroy();
-
-    barChart = new Chart(document.getElementById('barChart'), {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          { label: "Spend", data: spendData, backgroundColor: "rgba(75, 192, 192, 0.6)" },
-          { label: "Sales", data: salesData, backgroundColor: "rgba(153, 102, 255, 0.6)" }
-        ]
-      },
-      options: { responsive: true }
-    });
-
-    lineChart1 = new Chart(document.getElementById('lineChart1'), {
-      type: 'line',
-      data: { labels, datasets: [{ label: "Spend", data: spendData, fill: false, borderColor: "green" }] },
-      options: { responsive: true }
-    });
-
-    lineChart2 = new Chart(document.getElementById('lineChart2'), {
-      type: 'line',
-      data: { labels, datasets: [{ label: "Sales", data: salesData, fill: false, borderColor: "blue" }] },
-      options: { responsive: true }
-    });
-  }
-
-  function updateTable(data) {
+  function renderTable(data) {
     const table = $('#dataTable').DataTable();
     table.clear();
-    data.forEach(row => {
+
+    let totalSpend = 0, totalSales = 0, totalOrders = 0;
+    data.forEach(r => {
+      const s = parseFloat(r["Spend"] || 0);
+      const sa = parseFloat(r["7 Day Total Sales (whatever header)"] || 0);
+      const o = parseInt(r["7 Day Total Orders (#)"] || 0);
+      totalSpend += s;
+      totalSales += sa;
+      totalOrders += o;
+
       table.row.add([
-        row["Date"] || '',
-        row["Store"] || '',
-        row["Campaign Name"] || '',
-        `$${parseFloat(row["Spend"] || 0).toFixed(2)}`,
-        `$${parseFloat(row["7 Day Total Sales "] || 0).toFixed(2)}`,
-        row["7 Day Total Orders (#)"] || 0,
-        `${parseFloat(row["Click-Thru Rate (CTR)"] || 0).toFixed(2)}%`
+        r["Date"] || '',
+        r["Store"] || '',
+        r["Campaign Name"] || '',
+        "$" + s.toFixed(2),
+        "$" + sa.toFixed(2),
+        o,
+        r["Click-Thru Rate (CTR)"] + '%'
       ]);
     });
+
+    // Add totals row
+    table.row.add([
+      '', '<strong>Totals</strong>', '',
+      "<strong>$" + totalSpend.toFixed(2) + "</strong>",
+      "<strong>$" + totalSales.toFixed(2) + "</strong>",
+      "<strong>" + totalOrders + "</strong>",
+      ''
+    ]);
+
     table.draw();
-  }
-
-  $(document).ready(() => {
-    $('#dataTable').DataTable();
-  });
-
-  function updatePivotTable(data) {
-    const pivot = {};
-    data.forEach(row => {
-      const store = row["Store"];
-      pivot[store] = pivot[store] || { spend: 0, sales: 0 };
-      pivot[store].spend += parseFloat(row["Spend"] || 0);
-      pivot[store].sales += parseFloat(row["7 Day Total Sales "] || 0);
-    });
-
-    const tbody = document.querySelector('#pivotTable tbody');
-    tbody.innerHTML = '';
-    Object.entries(pivot).forEach(([store, v]) => {
-      const acos = v.sales > 0 ? (v.spend / v.sales) * 100 : 0;
-      tbody.innerHTML += `<tr>
-        <td>${store}</td>
-        <td>$${v.spend.toFixed(2)}</td>
-        <td>$${v.sales.toFixed(2)}</td>
-        <td>${acos.toFixed(2)}%</td>
-      </tr>`;
-    });
   }
 };
