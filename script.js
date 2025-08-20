@@ -12,7 +12,6 @@ window.onload = () => {
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
 
-  // Correct plugin registration for Chart Zoom
   if (typeof ChartZoom !== "undefined") {
     Chart.register(ChartZoom);
   } else {
@@ -101,11 +100,11 @@ window.onload = () => {
       if (dateParts.length === 3) {
         const [day, month, year] = dateParts;
         rowMonth = `${month}-${year}`;
+        monthSet.add(rowMonth);
       } else {
         console.warn("Invalid Date:", row["Date"]);
       }
 
-      monthSet.add(rowMonth);
       if (row.Store) storeSet.add(row.Store);
     });
 
@@ -139,6 +138,10 @@ window.onload = () => {
       return matchMonth && matchStore;
     });
 
+    console.log("📅 Selected Month:", selectedMonth);
+    console.log("🏪 Selected Store:", selectedStore);
+    console.log("✅ Filtered rows:", filtered.length);
+
     updateKPIs(filtered);
     renderBarChart(filtered);
     renderLineChart(filtered);
@@ -147,7 +150,6 @@ window.onload = () => {
 
   function updateKPIs(data) {
     let spend = 0, sales = 0, orders = 0, acosSum = 0, ctrSum = 0, count = 0;
-
     data.forEach(row => {
       spend += parseFloat(row.Spend) || 0;
       sales += parseFloat(row["7 Day Total Sales"]?.replace(/[^0-9.]/g, "")) || 0;
