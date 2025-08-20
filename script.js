@@ -151,18 +151,21 @@ window.onload = function () {
   }
 
   function applyFilters(data) {
-    const selectedMonths = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb => cb.value);
-    const selectedStores = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+  const selectedMonths = Array.from(monthFilter.querySelectorAll('input:checked')).map(cb => cb.value);
+  const selectedStores = Array.from(storeFilter.querySelectorAll('input:checked')).map(cb => cb.value);
 
-    let filtered = data.filter(row =>
-      selectedMonths.includes(row.Date?.slice(3)) &&
-      selectedStores.includes(row.Store)
-    );
+  const showAllMonths = selectedMonths.includes("All");
+  const showAllStores = selectedStores.includes("All");
 
-    updateKPIs(filtered);
-    renderBarChart(filtered);
-    renderLineChart(filtered);
-  }
+  const filtered = data.filter(row =>
+    (showAllMonths || selectedMonths.includes(row.Date?.slice(3))) &&
+    (showAllStores || selectedStores.includes(row.Store))
+  );
+
+  updateKPIs(filtered);
+  renderBarChart(filtered);
+  renderLineChart(filtered);
+}
 
   function updateKPIs(data) {
     const totalSpend = data.reduce((sum, row) => sum + parseFloat(row["Spend"] || 0), 0);
