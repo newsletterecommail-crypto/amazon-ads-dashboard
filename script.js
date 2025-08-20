@@ -107,14 +107,36 @@ window.onload = function () {
     const uniqueStores = [...new Set(data.map(row => row.Store))];
 
     monthFilter.innerHTML = uniqueMonths.map(month =>
-      `<label><input type="checkbox" value="${month}" checked> ${month}</label><br>`).join('');
+      `<label><input type="checkbox" value="${month}" checked> ${month}</label>`).join('') +
+      `<label><input type="checkbox" value="All"> All</label>`;
+
     storeFilter.innerHTML = uniqueStores.map(store =>
-      `<label><input type="checkbox" value="${store}" checked> ${store}</label><br>`).join('');
+      `<label><input type="checkbox" value="${store}" checked> ${store}</label>`).join('') +
+      `<label><input type="checkbox" value="All"> All</label>`;
 
     monthFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
     storeFilter.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => applyFilters(data)));
 
+    enableAllCheckboxToggle('monthFilter', data);
+    enableAllCheckboxToggle('storeFilter', data);
+
     applyFilters(data);
+  }
+
+  function enableAllCheckboxToggle(groupId, data) {
+    const container = document.getElementById(groupId);
+    container.addEventListener('change', function (e) {
+      if (e.target.value === "All") {
+        const isChecked = e.target.checked;
+        container.querySelectorAll('input[type=checkbox]').forEach(cb => {
+          cb.checked = cb.value === "All" || !isChecked;
+        });
+      } else {
+        const allBox = container.querySelector('input[value="All"]');
+        if (allBox) allBox.checked = false;
+      }
+      applyFilters(data);
+    });
   }
 
   function applyFilters(data) {
@@ -242,22 +264,3 @@ window.onload = function () {
     });
   }
 };
-function enableAllCheckboxToggle(groupId) {
-  const container = document.getElementById(groupId);
-  container.addEventListener('change', function (e) {
-    if (e.target.value === "All") {
-      const isChecked = e.target.checked;
-      container.querySelectorAll('input[type=checkbox]').forEach(cb => {
-        cb.checked = cb.value === "All" || !isChecked;
-      });
-    } else {
-      const allBox = container.querySelector('input[value="All"]');
-      if (allBox) allBox.checked = false;
-    }
-    applyFilters(allData); // Re-apply filters instantly
-  });
-}
-
-// Call for both groups
-enableAllCheckboxToggle('monthFilter');
-enableAllCheckboxToggle('storeFilter');
