@@ -1,7 +1,4 @@
 window.onload = () => {
-  // ==========================
-  // Firebase Configuration
-  // ==========================
   const firebaseConfig = {
     apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
     authDomain: "ecom-ads-dashboard.firebaseapp.com",
@@ -18,9 +15,6 @@ window.onload = () => {
   const loginContainer = document.getElementById("loginContainer");
   const dashboardContainer = document.getElementById("dashboardContainer");
 
-  // ==========================
-  // Auth Event Listeners
-  // ==========================
   document.getElementById("signupButton").addEventListener("click", () => {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -58,9 +52,6 @@ window.onload = () => {
     });
   });
 
-  // ==========================
-  // Dashboard Loader
-  // ==========================
   function loadDashboard() {
     const CSV1 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part1.csv";
     const CSV2 = "https://newsletterecommail-crypto.github.io/amazon-ads-dashboard/report_part2.csv";
@@ -85,9 +76,6 @@ window.onload = () => {
       });
   }
 
-  // ==========================
-  // Dashboard Initialization
-  // ==========================
   function initDashboard(data) {
     const monthSet = new Set();
     const storeSet = new Set();
@@ -129,9 +117,6 @@ window.onload = () => {
     applyFilters(data);
   }
 
-  // ==========================
-  // Filter Logic
-  // ==========================
   function applyFilters(data) {
     const selectedMonths = getSelectValues(document.getElementById("monthFilter"));
     const selectedStores = getSelectValues(document.getElementById("storeFilter"));
@@ -154,9 +139,6 @@ window.onload = () => {
     return Array.from(selectElement.selectedOptions).map(opt => opt.value);
   }
 
-  // ==========================
-  // KPI Cards
-  // ==========================
   function updateKPIs(data) {
     let totalSpend = 0, totalSales = 0, totalOrders = 0, totalACOS = 0, totalCTR = 0, validACOS = 0, validCTR = 0;
 
@@ -182,12 +164,9 @@ window.onload = () => {
     document.getElementById("kpiSales").textContent = `$${totalSales.toFixed(2)}`;
     document.getElementById("kpiOrders").textContent = totalOrders.toLocaleString();
     document.getElementById("kpiACOS").textContent = validACOS ? `${(totalACOS / validACOS).toFixed(2)}%` : "0%";
-    document.getElementById("kpiCTR").textContent = validCTR ? `${(totalCTR / validCTR).toFixed(2)}%` : "0%`;
+    document.getElementById("kpiCTR").textContent = validCTR ? `${(totalCTR / validCTR).toFixed(2)}%` : "0%";
   }
 
-  // ==========================
-  // Main Campaign Table
-  // ==========================
   function updateTable(data) {
     if ($.fn.dataTable.isDataTable("#dataTable")) {
       $('#dataTable').DataTable().destroy();
@@ -218,9 +197,6 @@ window.onload = () => {
     });
   }
 
-  // ==========================
-  // Store-wise Summary Table
-  // ==========================
   function updatePivotTable(data) {
     const pivotTableBody = document.querySelector("#pivotTable tbody");
     pivotTableBody.innerHTML = "";
@@ -229,4 +205,39 @@ window.onload = () => {
 
     data.forEach(row => {
       const store = row["Store"];
-      const spend = pa
+      const spend = parseFloat(row["Spend"] || 0);
+      const sales = parseFloat(row["7 Day Total Sales"] || 0);
+      const acos = parseFloat(row["ACOS"] || 0);
+
+      if (!storeMap[store]) {
+        storeMap[store] = { spend: 0, sales: 0, acosTotal: 0, acosCount: 0 };
+      }
+
+      storeMap[store].spend += spend;
+      storeMap[store].sales += sales;
+
+      if (!isNaN(acos)) {
+        storeMap[store].acosTotal += acos;
+        storeMap[store].acosCount++;
+      }
+    });
+
+    Object.keys(storeMap).sort().forEach(store => {
+      const entry = storeMap[store];
+      const avgAcos = entry.acosCount ? (entry.acosTotal / entry.acosCount).toFixed(2) : "0.00";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${store}</td>
+        <td>$${entry.spend.toFixed(2)}</td>
+        <td>$${entry.sales.toFixed(2)}</td>
+        <td>${avgAcos}%</td>
+      `;
+      pivotTableBody.appendChild(tr);
+    });
+  }
+
+  function updateCharts(data) {
+    // Placeholder for future chart logic
+  }
+};
