@@ -108,8 +108,8 @@ window.onload = () => {
       storeSelect.appendChild(option);
     });
 
-    const monthChoices = new Choices(monthSelect, { removeItemButton: true });
-    const storeChoices = new Choices(storeSelect, { removeItemButton: true });
+    new Choices(monthSelect, { removeItemButton: true });
+    new Choices(storeSelect, { removeItemButton: true });
 
     monthSelect.addEventListener("change", () => applyFilters(data));
     storeSelect.addEventListener("change", () => applyFilters(data));
@@ -144,16 +144,16 @@ window.onload = () => {
 
     data.forEach(row => {
       totalSpend += parseFloat(row["Spend"] || 0);
-      totalSales += parseFloat(row["7 Day Total Sales"] || 0);
-      totalOrders += parseInt(row["Total Orders"] || 0);
+      totalSales += parseFloat(row["7 Day Total Sales "] || 0);
+      totalOrders += parseInt(row["7 Day Total Orders (#)"] || 0);
 
-      const acos = parseFloat(row["ACOS"]);
+      const acos = parseFloat((row["Total Advertising Cost of Sales (ACOS) "] || "").replace("%", ""));
       if (!isNaN(acos)) {
         totalACOS += acos;
         validACOS++;
       }
 
-      const ctr = parseFloat(row["CTR"]);
+      const ctr = parseFloat((row["Click-Thru Rate (CTR)"] || "").replace("%", ""));
       if (!isNaN(ctr)) {
         totalCTR += ctr;
         validCTR++;
@@ -182,9 +182,9 @@ window.onload = () => {
         <td>${row["Store"]}</td>
         <td>${row["Campaign Name"]}</td>
         <td>${row["Spend"]}</td>
-        <td>${row["7 Day Total Sales"]}</td>
-        <td>${row["Total Orders"]}</td>
-        <td>${row["CTR"]}</td>
+        <td>${row["7 Day Total Sales "]}</td>
+        <td>${row["7 Day Total Orders (#)"]}</td>
+        <td>${row["Click-Thru Rate (CTR)"]}</td>
       `;
       tableBody.appendChild(tr);
     });
@@ -206,8 +206,8 @@ window.onload = () => {
     data.forEach(row => {
       const store = row["Store"];
       const spend = parseFloat(row["Spend"] || 0);
-      const sales = parseFloat(row["7 Day Total Sales"] || 0);
-      const acos = parseFloat(row["ACOS"] || 0);
+      const sales = parseFloat(row["7 Day Total Sales "] || 0);
+      const acos = parseFloat((row["Total Advertising Cost of Sales (ACOS) "] || "").replace("%", ""));
 
       if (!storeMap[store]) {
         storeMap[store] = { spend: 0, sales: 0, acosTotal: 0, acosCount: 0 };
@@ -238,6 +238,6 @@ window.onload = () => {
   }
 
   function updateCharts(data) {
-    // Placeholder for future chart logic
+    // Optional future implementation
   }
 };
