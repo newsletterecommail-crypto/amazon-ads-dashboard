@@ -127,11 +127,25 @@ function populateFilters(data) {
     storeFilter.appendChild(opt);
   });
 
-  new Choices("#monthFilter", { removeItemButton: true });
-  new Choices("#storeFilter", { removeItemButton: true });
+  // Initialize Choices and only trigger filtering *after* rendering completes
+  const monthChoices = new Choices("#monthFilter", {
+    removeItemButton: true,
+    shouldSort: false
+  });
 
-  monthFilter.addEventListener("change", applyFilters);
-  storeFilter.addEventListener("change", applyFilters);
+  const storeChoices = new Choices("#storeFilter", {
+    removeItemButton: true,
+    shouldSort: false
+  });
+
+  // Wait for next frame to let DOM render
+  requestAnimationFrame(() => {
+    applyFilters();
+
+    // Bind change handlers AFTER first render
+    monthFilter.addEventListener("change", applyFilters);
+    storeFilter.addEventListener("change", applyFilters);
+  });
 }
 
 // ==========================
