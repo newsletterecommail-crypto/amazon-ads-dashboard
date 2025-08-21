@@ -14,13 +14,6 @@ window.onload = () => {
             skipEmptyLines: true,
             complete: res2 => {
               allData = res1.data.concat(res2.data);
-              allData = allData.map(row => {
-                const trimmed = {};
-                for (const key in row) {
-                  trimmed[key.trim()] = row[key];
-                }
-                return trimmed;
-              });
               initDashboard(allData);
             }
           });
@@ -29,13 +22,30 @@ window.onload = () => {
     });
 
   function initDashboard(data) {
-    updateKPIs(data);
-    renderDataTable(data);
+    // Wait for dashboard KPIs to exist before updating
+    const dashboardCheckInterval = setInterval(() => {
+      if (
+        document.getElementById("totalSpend") &&
+        document.getElementById("totalSales") &&
+        document.getElementById("totalOrders") &&
+        document.getElementById("avgACOS") &&
+        document.getElementById("avgCTR")
+      ) {
+        clearInterval(dashboardCheckInterval);
+        updateKPIs(data);
+        renderDataTable(data);
+      }
+    }, 100);
   }
 
   function updateKPIs(data) {
-    let totalSpend = 0, totalSales = 0, totalOrders = 0, totalACOS = 0, totalCTR = 0;
-    let validACOS = 0, validCTR = 0;
+    let totalSpend = 0,
+        totalSales = 0,
+        totalOrders = 0,
+        totalACOS = 0,
+        totalCTR = 0,
+        validACOS = 0,
+        validCTR = 0;
 
     data.forEach(row => {
       const spend = parseFloat(row["Spend"]) || 0;
@@ -58,33 +68,98 @@ window.onload = () => {
       }
     });
 
-    document.getElementById("totalSpend").innerText = `$${totalSpend.toFixed(2)}`;
-    document.getElementById("totalSales").innerText = `$${totalSales.toFixed(2)}`;
-    document.getElementById("totalOrders").innerText = totalOrders;
-    document.getElementById("avgACOS").innerText = validACOS ? `${(totalACOS / validACOS).toFixed(2)}%` : "0%";
-    document.getElementById("avgCTR").innerText = validCTR ? `${(totalCTR / validCTR).toFixed(2)}%` : "0%";
+    document.getElementById("totalSpend").textContent = `$${totalSpend.toFixed(2)}`;
+    document.getElementById("totalSales").textContent = `$${totalSales.toFixed(2)}`;
+    document.getElementById("totalOrders").textContent = totalOrders.toString();
+    document.getElementById("avgACOS").textContent = (validACOS ? (totalACOS / validACOS).toFixed(2) : "0") + "%";
+    document.getElementById("avgCTR").textContent = (validCTR ? (totalCTR / validCTR).toFixed(2) : "0") + "%";
   }
 
   function renderDataTable(data) {
-    const tableBody = document.querySelector("#dataTable tbody");
-    tableBody.innerHTML = "";
-
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row["Date"] || ""}</td>
-        <td>${row["Store"] || ""}</td>
-        <td>${row["Campaign Name"] || ""}</td>
-        <td>${parseFloat(row["Spend"]) || 0}</td>
-        <td>${parseFloat(row["7 Day Total Sales "]) || 0}</td>
-        <td>${parseInt(row["7 Day Total Orders (#)"]) || 0}</td>
-        <td>${row["Click-Thru Rate (CTR)"] || "0"}</td>
-        <td>${row["Total Advertising Cost of Sales (ACOS) "] || "0"}</td>
-        <td>${row["Total Return on Advertising Spend (ROAS)"] || "0"}</td>
-      `;
-      tableBody.appendChild(tr);
+    const tableData = data.map(row => {
+      return {
+        Date: row["Date"],
+        Store: row["Store"],
+        Campaign: row["Campaign Name"],
+        Spend: parseFloat(row["Spend"]).toFixed(2),
+        Sales: parseFloat(row["7 Day Total Sales "]).toFixed(2),
+        Orders: parseInt(row["7 Day Total Orders (#)"]) || 0,
+        CTR: row["Click-Thru Rate (CTR)"] || "0%",
+        ACOS: row["Total Advertising Cost of Sales (ACOS) "] || "0%",
+        ROAS: row["Total Return on Advertising Spend (ROAS)"] || "0",
+      };
     });
 
-    $("#dataTable").DataTable();
+    const table = $("#dataTable").DataTable({
+      data: tableData,
+      destroy: true,
+      columns: [
+        { data: "Date" },
+        { data: "Store" },
+        { data: "Campaign" },
+        { data: "Spend" },
+        { data: "Sales" },
+        { data: "Orders" },
+        { data: "CTR" },
+        { data: "ACOS" },
+        { data: "ROAS" },
+      ],
+    });
   }
+
+  // Firebase Setup
+  const firebaseConfig = {
+    apiKey: "AIzaSyA0831NjwrFfuceFgcg7ur2sVqOBkrAg1Y",
+    authDomain: "ecom-ads-dashboard.firebaseapp.com",
+    projectId: "ecom-ads-dashboard",
+    storageBucket: "ecom-ads-dashboard.appspot.com",
+    messagingSenderId: "98800254885",
+    appId: "1:98800254885:web:887b2679a23362f8b6b24c",
+    measurementId: "G-42KBT0D9ET"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  if (window['chartjs-plugin-zoom']) {
+    Chart.register(window['chartjs-plugin-zoom']);
+  } else {
+    console.warn("chartjs-plugin-zoom plugin not found. Zoom features will be disabled.");
+  }
+
+  const loginContainer = document.getElementById('loginContainer');
+  const dashboardContainer = document.getElementById('dashboardContainer');
+  const signupButton = document.getElementById('signupButton');
+  const loginButton = document.getElementById('loginButton');
+  const logoutButton = document.getElementById('logoutButton');
+
+  signupButton.addEventListener("click", () => {
+    const email = document.getElementById("emailInput").value;
+    const password = document.getElementById("passwordInput").value;
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => location.reload())
+      .catch(error => alert(error.message));
+  });
+
+  loginButton.addEventListener("click", () => {
+    const email = document.getElementById("emailInput").value;
+    const password = document.getElementById("passwordInput").value;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => location.reload())
+      .catch(error => alert(error.message));
+  });
+
+  logoutButton.addEventListener("click", () => {
+    auth.signOut().then(() => location.reload());
+  });
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      loginContainer.style.display = "none";
+      dashboardContainer.style.display = "block";
+    } else {
+      loginContainer.style.display = "block";
+      dashboardContainer.style.display = "none";
+    }
+  });
 };
